@@ -17,39 +17,55 @@
 
         #container {
             width: 100%;
-            max-width: 600px; /* スマホでの見やすさの限界幅 */
+            max-width: 600px;
             background-color: #ffffff;
             padding: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border-radius: 12px;
         }
 
-        h2 {
+        #dynamic-month-title {
             text-align: center;
-            color: #333;
-            font-size: 1.4em;
-            margin-bottom: 20px;
-        }
-
-        /* === 2. カレンダーとナビゲーション === */
-        #month-selector {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 1.1em;
+            color: #1a73e8;
+            font-size: 1.6em;
             font-weight: bold;
-            color: #1a73e8;
-        }
-        #month-selector button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.5em;
-            color: #1a73e8;
-            padding: 5px 10px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
+        /* === 2. 管理者用の説明書き/注意事項のスタイル === */
+        .admin-note-box {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        /* 1つ目の注意事項（締め切りなど）: 黄色 */
+        .admin-caution-first {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            font-weight: bold;
+        }
+
+        /* 2つ目の注意事項（送信ボタンの上）: 青色 */
+        .admin-caution-second {
+            background-color: #e2f0fd;
+            color: #0c5460;
+            border: 1px solid #b8daff;
+        }
+
+        /* 備考欄の説明書き: 薄いグレー */
+        .admin-remark-info {
+            background-color: #f0f0f0;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+
+        /* === 3. カレンダー関連のスタイル（変更なし） === */
         #calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -69,13 +85,18 @@
             border: 1px solid #eee;
             border-radius: 6px;
             cursor: pointer;
-            min-height: 50px; /* タップしやすさ */
+            min-height: 50px;
             padding: 5px;
             text-align: right;
             position: relative;
             transition: background-color 0.1s;
         }
-        .day-cell:hover {
+        .day-cell.locked {
+            background-color: #eceff1;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .day-cell:not(.locked):hover {
             background-color: #f0f0f0;
         }
 
@@ -95,27 +116,15 @@
             border-radius: 3px;
         }
 
-        /* === 3. シフトのカラーコード === */
-        .shift-hayade, .shift-hayade-630 { /* 早出系統：緑 */
-            background-color: #4CAF50; /* Green */
-            color: white;
-        }
-        .shift-hayade-630 {
-            background-color: #8BC34A; /* Light Green */
-        }
-        .shift-osode, .shift-osode-2230 { /* 遅出系統：青 */
-            background-color: #2196F3; /* Blue */
-            color: white;
-        }
-        .shift-osode-2230 {
-            background-color: #03A9F4; /* Light Blue */
-        }
-        .shift-yasumi { /* 休み系統：赤 */
-            background-color: #F44336; /* Red */
-            color: white;
-        }
+        /* === 4. シフトのカラーコード（変更なし） === */
+        /* CSSクラス名は設定エリアで定義されたものをそのまま使用 */
+        .shift-hayade { background-color: #4CAF50; color: white; }
+        .shift-hayade-630 { background-color: #8BC34A; color: white; }
+        .shift-osode { background-color: #2196F3; color: white; }
+        .shift-osode-2230 { background-color: #03A9F4; color: white; }
+        .shift-yasumi { background-color: #F44336; color: white; }
 
-        /* === 4. モーダル（選択画面） === */
+        /* === 5. モーダルと送信ボタン（変更なし） === */
         .modal {
             position: fixed;
             top: 0;
@@ -139,7 +148,7 @@
         }
         .shift-option-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 2列表示 */
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -155,8 +164,6 @@
         .shift-option-grid button:hover {
             opacity: 0.8;
         }
-
-        /* === 5. 最終送信エリア === */
         #submission-area {
             padding: 15px;
             border-top: 1px solid #eee;
@@ -182,8 +189,12 @@
             cursor: pointer;
             transition: background-color 0.1s;
         }
-        #submit-button:hover {
+        #submit-button:hover:not(:disabled) {
             background-color: #0056b3;
+        }
+        #submit-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
         #loading-message {
             text-align: center;
@@ -195,13 +206,11 @@
 </head>
 <body>
     <div id="container">
-        <h2>シフト希望入力</h2>
+        
+        <h2 id="dynamic-month-title"></h2>
 
-        <div id="month-selector">
-            <button onclick="changeMonth(-1)">&#9664;</button>
-            <span id="current-month"></span>
-            <button onclick="changeMonth(1)">&#9654;</button>
-        </div>
+        <div class="admin-note-box admin-caution-first" id="caution-top-content">
+            </div>
 
         <div id="calendar">
             <span class="weekday" style="color: #F44336;">日</span>
@@ -215,50 +224,123 @@
 
         <div id="submission-area">
             <input type="text" id="staff-name" placeholder="氏名を入力（必須）" required>
+            <input type="email" id="staff-email" placeholder="メールアドレス（控え受取用/任意）" style="width: calc(100% - 20px); padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em;">
+            
+            <label for="comment" style="font-weight: bold; display: block; margin-bottom: 5px;">備考欄</label>
+            <div class="admin-note-box admin-remark-info" id="remark-admin-content">
+                </div>
             <textarea id="comment" placeholder="連絡事項など（任意）" rows="3"></textarea>
+            
+            <div class="admin-note-box admin-caution-second" id="caution-bottom-content">
+                </div>
+
             <button id="submit-button" onclick="submitShifts()">希望シフトを送信</button>
             <div id="loading-message" style="display: none;">送信中...</div>
         </div>
 
     </div>
 
-    <div id="shift-modal" class="modal">
-        <div class="modal-content">
+    <div id="shift-modal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <h3><span id="modal-date"></span> のシフト選択</h3>
             
-            <div class="shift-option-grid">
-                <button class="shift-option shift-hayade" onclick="selectShift('早出', 'shift-hayade')">早出</button>
-                <button class="shift-option shift-hayade-630" onclick="selectShift('早出6時30分から', 'shift-hayade-630')">早出6:30から</button>
-                
-                <button class="shift-option shift-osode" onclick="selectShift('遅出', 'shift-osode')">遅出</button>
-                <button class="shift-option shift-osode-2230" onclick="selectShift('遅出22時30分まで', 'shift-osode-2230')">遅出22:30まで</button>
-
-                <button class="shift-option shift-yasumi" onclick="selectShift('休み', 'shift-yasumi')">休み</button>
-                
-                <button class="shift-option" style="background-color: #ccc; color: #333;" onclick="selectShift('', '')">リセット (空欄)</button>
-            </div>
+            <div id="shift-option-grid-container" class="shift-option-grid">
+                </div>
             
             <button onclick="closeModal()" style="padding: 10px 20px; border-radius: 6px; background-color: #f0f0f0; border: 1px solid #ccc;">閉じる</button>
         </div>
     </div>
 
     <script>
-        // === 1. 設定項目 ===
-        // ?? ここにデプロイしたGASのURLを貼り付けてください ??
-        const GAS_URL = '【ここにGASのウェブアプリURL（末尾 /exec）を貼り付け】';
+        // =======================================================
+        // === 1. 管理者設定エリア（ここだけ編集してください） ===
+        // =======================================================
+        
+        // 【A】GASのウェブアプリURLを貼り付けてください
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwtkmgZ3EevyFPuxZpBYvvNWaDc_3PJrrm2lKYDf8NgB2wUuGlKUBg5KTqbYUPUzCH_/exec';
 
-        // シフトを保持するオブジェクト { 'YYYY-MM-DD': 'shiftValue' }
+        // 【B】シフトの締め切り日を設定してください
+        const DEADLINE_DAY = 20; // 例: 20日締め切り
+
+        // 【C】各注意書き欄の内容を編集してください (文頭の「`」と「`」の間だけ編集)
+        
+        // 1つ目の注意事項 (カレンダーの上部: 黄色)
+        // 修正点: シングルクォーテーションをバッククォートに修正しました
+        const CAUTION_TEXT_TOP = `締め切りは毎月${DEADLINE_DAY}日です。21日以降は当月のシフトは編集できなくなりますのでご注意ください。`;
+        
+        // 2つ目の注意事項 (送信ボタンの上: 青色)
+        const CAUTION_TEXT_BOTTOM = `特別な希望や、出勤できない曜日、時間帯の変更があればこちらにご記入ください。必ず最新の内容を確認して送信してください。`;
+
+        // 備考欄の説明書き (自由入力欄の上: グレー)
+        const REMARK_TEXT_ADMIN = `こちらには、特別な希望（例: 研修のためこの日は早めに上がりたい）や、連絡事項をご記入ください。`;
+
+        // 【D】シフトの項目を編集してください (ラベル、値、クラス名を編集)
+        const SHIFT_OPTIONS = [
+            { label: '早番', value: '早番', cssClass: 'shift-hayade' },
+            { label: '早番6時30分から', value: '早番6時30分から', cssClass: 'shift-hayade-630' },
+            { label: '遅番', value: '遅番', cssClass: 'shift-osode' },
+            { label: '遅番22時30分まで', value: '遅番22時30分まで', cssClass: 'shift-osode-2230' },
+            { label: '休み', value: '休み', cssClass: 'shift-yasumi' }
+        ];
+
+        // =======================================================
+        // === 2. スクリプト本体（ここから下は編集しないでください） ===
+        // =======================================================
+        
         let selectedShifts = {};
         let currentDayCell = null;
         let currentDate = new Date();
+        let targetMonthDate = new Date(); // 翌月用
 
-        // === 2. カレンダー生成ロジック ===
+        function initCalendar() {
+            // 管理者設定テキストをHTMLに挿入
+            document.getElementById('caution-top-content').innerHTML = `<strong>【重要】</strong><br>${CAUTION_TEXT_TOP}`;
+            document.getElementById('caution-bottom-content').innerHTML = `<strong>【管理者からのお知らせ】</strong><br>${CAUTION_TEXT_BOTTOM}`;
+            document.getElementById('remark-admin-content').innerHTML = `<strong>【備考欄記入時の注意】</strong><br>${REMARK_TEXT_ADMIN}`;
+            
+            // シフト選択ボタンを動的に生成
+            createShiftButtons();
+
+            // アクセスした時点で翌月のカレンダーを表示
+            targetMonthDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        }
+
+        /**
+         * 設定エリアで定義したSHIFT_OPTIONSに基づいてボタンを動的に生成する
+         */
+        function createShiftButtons() {
+            const container = document.getElementById('shift-option-grid-container');
+            let buttonsHtml = '';
+            
+            // 1. 定義されたシフト項目を生成
+            SHIFT_OPTIONS.forEach(option => {
+                buttonsHtml += `
+                    <button class="shift-option ${option.cssClass}" 
+                            onclick="selectShift('${option.value}', '${option.cssClass}')">
+                        ${option.label}
+                    </button>
+                `;
+            });
+
+            // 2. リセットボタンを生成
+            buttonsHtml += `
+                <button class="shift-option" style="background-color: #ccc; color: #333;" onclick="selectShift('', '')">
+                    リセット (空欄)
+                </button>
+            `;
+
+            container.innerHTML = buttonsHtml;
+        }
+
 
         function updateCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth(); // 0-11
-            const monthName = `${year}年 ${month + 1}月`;
-            document.getElementById('current-month').textContent = monthName;
+            const year = targetMonthDate.getFullYear();
+            const month = targetMonthDate.getMonth(); // 0-11
+            const day = currentDate.getDate(); // 今日の日付
+            
+            // H2タグの内容を「YYYY年 M月の希望シフト」に変更
+            document.getElementById('dynamic-month-title').textContent = `${month + 1}月分の希望シフト入力`;
 
             const calendarDiv = document.getElementById('calendar');
             // 曜日行より下をクリア
@@ -266,7 +348,26 @@
 
             const firstDayOfMonth = new Date(year, month, 1);
             const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
-            const startDay = firstDayOfMonth.getDay(); // 0=日, 1=月, ...
+            const startDay = firstDayOfMonth.getDay();
+
+            // 締め切り判定
+            const isDeadlinePassed = currentDate.getMonth() === month && day > DEADLINE_DAY;
+            
+            // 締め切りが過ぎた場合、送信ボタンを無効化
+            const submitButton = document.getElementById('submit-button');
+            if (isDeadlinePassed) {
+                submitButton.textContent = '締め切り済み（送信不可）';
+                submitButton.disabled = true;
+                // 注意事項を更新
+                document.getElementById('caution-top-content').innerHTML = `
+                    <strong>【締め切りのお知らせ】</strong><br>
+                    当月${DEADLINE_DAY}日を過ぎたため、${month + 1}月分のシフト希望は締め切りました。
+                `;
+            } else {
+                submitButton.textContent = '希望シフトを送信';
+                submitButton.disabled = false;
+            }
+
 
             // 前月の日付で空白を埋める
             for (let i = 0; i < startDay; i++) {
@@ -285,8 +386,10 @@
                 if (dayOfWeek === 0) dayColor = '#F44336'; // 日曜: 赤
                 if (dayOfWeek === 6) dayColor = '#2196F3'; // 土曜: 青
 
+                const isLocked = isDeadlinePassed && month === currentDate.getMonth();
+
                 const dayCellHTML = `
-                    <div class="day-cell" data-date="${dateString}" onclick="openModal(this, ${day})">
+                    <div class="day-cell ${isLocked ? 'locked' : ''}" data-date="${dateString}" onclick="openModal(this, ${day}, ${isLocked})">
                         <span class="date-number" style="color: ${dayColor};">${day}</span>
                         <div class="shift-display ${shiftClass}">${shiftValue}</div>
                     </div>
@@ -296,20 +399,26 @@
         }
 
         function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
+            targetMonthDate.setMonth(targetMonthDate.getMonth() + delta);
             updateCalendar();
         }
 
+        /**
+         * GASに送る値に基づいて、対応するCSSクラス名を返す
+         */
         function getShiftClass(value) {
-            if (value.includes('早出')) return value.includes('6時30分') ? 'shift-hayade-630' : 'shift-hayade';
-            if (value.includes('遅出')) return value.includes('22時30分') ? 'shift-osode-2230' : 'shift-osode';
-            if (value.includes('休み')) return 'shift-yasumi';
-            return '';
+            const found = SHIFT_OPTIONS.find(option => option.value === value);
+            return found ? found.cssClass : '';
         }
 
         // === 3. モーダルと選択ロジック ===
 
-        function openModal(cell, day) {
+        function openModal(cell, day, isLocked) {
+            if (isLocked) {
+                alert("この月は締め切りを過ぎているため、編集できません。");
+                return;
+            }
+
             const dateString = cell.dataset.date;
             const modalDateSpan = document.getElementById('modal-date');
             
@@ -342,12 +451,12 @@
         // === 4. GASへの送信ロジック ===
 
         async function submitShifts() {
-            if (GAS_URL === '【ここにGASのウェブアプリURL（末尾 /exec）を貼り付け】') {
-                alert("エラー: GASのURLが設定されていません。");
+            if (GAS_URL.includes('【ここにGASのウェブアプリURL')) {
+                alert("エラー: 管理者設定が必要です。HTML内のURLを設定してください。");
                 return;
             }
             
-            const name = document.getElementById('staff-name').value;
+            const name = document.getElementById('staff-name').value.trim();
             const comment = document.getElementById('comment').value;
 
             if (!name) {
@@ -357,24 +466,24 @@
 
             const shiftsArray = Object.entries(selectedShifts).map(([date, shift]) => {
                 const day = new Date(date).getDate();
-                // GAS側で処理しやすい形式: "1日:早出, 2日:休み, ..."
                 return `${day}日:${shift}`; 
             }).filter(([_, shift]) => shift.trim() !== '日:');
 
             if (shiftsArray.length === 0) {
-                alert("シフトが一つも選択されていません。");
-                return;
+                if (!confirm("シフトが一つも選択されていませんが送信しますか？")) return;
             }
             
-            // 送信月の決定 (カレンダーに表示されている月)
-            const submissionMonth = `${currentDate.getFullYear()}/${currentDate.getMonth() + 1}`;
+            const submissionMonth = `${targetMonthDate.getFullYear()}/${targetMonthDate.getMonth() + 1}`;
 
-            const payload = {
-                name: name,
-                month: submissionMonth,
-                shifts: shiftsArray.join(', '),
-                comment: comment
-            };
+            const email = document.getElementById('staff-email').value.trim(); // 追加
+
+const payload = {
+    name: name,
+    email: email, // 追加
+    month: submissionMonth, // ※HTML内にこの変数定義がある前提です
+    shifts: shiftsArray.join(', '),
+    comment: comment
+};
             
             document.getElementById('submit-button').disabled = true;
             document.getElementById('loading-message').style.display = 'block';
@@ -384,16 +493,15 @@
                     method: 'POST',
                     body: JSON.stringify(payload),
                     headers: { 'Content-Type': 'application/json' },
-                    mode: 'no-cors' // GASへの送信はno-corsが必要
+                    mode: 'no-cors'
                 });
 
-                // GASからのJSONレスポンスはno-corsモードでは読み取れないため、
-                // 成功したと「みなす」のが一般的な対応です。
-                alert("シフト希望の送信が完了しました！ご協力ありがとうございます。");
+                alert("シフト希望の送信が完了しました！");
                 
                 // 送信後の状態リセット
                 selectedShifts = {};
                 document.getElementById('comment').value = '';
+                document.getElementById('staff-name').value = '';
                 updateCalendar();
 
             } catch (error) {
@@ -407,7 +515,7 @@
 
         // ページロード時にカレンダーを初期化
         document.addEventListener('DOMContentLoaded', () => {
-            updateCalendar();
+            initCalendar();
         });
     </script>
 </body>
