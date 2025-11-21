@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シフト希望入力</title>
+    <style>
+        /* === 1. 基本設定とスマホ最適化 === */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+        }
+
+        #container {
+            width: 100%;
+            max-width: 600px; /* スマホでの見やすさの限界幅 */
+            background-color: #ffffff;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+        }
+
+        /* === 2. カレンダーとナビゲーション === */
+        #month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        #month-selector button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #1a73e8;
+            padding: 5px 10px;
+        }
+
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: bold;
+            padding: 5px 0;
+            font-size: 0.85em;
+            color: #555;
+        }
+        .day-cell {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            cursor: pointer;
+            min-height: 50px; /* タップしやすさ */
+            padding: 5px;
+            text-align: right;
+            position: relative;
+            transition: background-color 0.1s;
+        }
+        .day-cell:hover {
+            background-color: #f0f0f0;
+        }
+
+        .date-number {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .shift-display {
+            font-size: 0.7em;
+            font-weight: 600;
+            line-height: 1.2;
+            text-align: center;
+            padding: 2px 0;
+            border-radius: 3px;
+        }
+
+        /* === 3. シフトのカラーコード === */
+        .shift-hayade, .shift-hayade-630 { /* 早出系統：緑 */
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+        .shift-hayade-630 {
+            background-color: #8BC34A; /* Light Green */
+        }
+        .shift-osode, .shift-osode-2230 { /* 遅出系統：青 */
+            background-color: #2196F3; /* Blue */
+            color: white;
+        }
+        .shift-osode-2230 {
+            background-color: #03A9F4; /* Light Blue */
+        }
+        .shift-yasumi { /* 休み系統：赤 */
+            background-color: #F44336; /* Red */
+            color: white;
+        }
+
+        /* === 4. モーダル（選択画面） === */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .shift-option-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2列表示 */
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .shift-option-grid button {
+            padding: 15px 10px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.1s;
+        }
+        .shift-option-grid button:hover {
+            opacity: 0.8;
+        }
+
+        /* === 5. 最終送信エリア === */
+        #submission-area {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+        }
+        #submission-area input, #submission-area textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+        #submit-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        #submit-button:hover {
+            background-color: #0056b3;
+        }
+        #loading-message {
+            text-align: center;
+            color: #007bff;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h2>シフト希望入力</h2>
+
+        <div id="month-selector">
+            <button onclick="changeMonth(-1)">&#9664;</button>
+            <span id="current-month"></span>
+            <button onclick="changeMonth(1)">&#9654;</button>
+        </div>
+
+        <div id="calendar">
+            <span class="weekday" style="color: #F44336;">日</span>
+            <span class="weekday">月</span>
+            <span class="weekday">火</span>
+            <span class="weekday">水</span>
+            <span class="weekday">木</span>
+            <span class="weekday">金</span>
+            <span class="weekday" style="color: #2196F3;">土</span>
+            </div>
+
+        <div id="submission-area">
+            <input type="text" id="staff-name" placeholder="氏名を入力（必須）" required>
+            <textarea id="comment" placeholder="連絡事項など（任意）" rows="3"></textarea>
+            <button id="submit-button" onclick="submitShifts()">希望シフトを送信</button>
+            <div id="loading-message" style="display: none;">送信中...</div>
+        </div>
+
+    </div>
+
+    <div id="shift-modal" class="modal">
+        <div class="modal-content">
+            <h3><span id="modal-date"></span> のシフト選択</h3>
+            
+            <div class="shift-option-grid">
+                <button class="shift-option shift-hayade" onclick="selectShift('早出', 'shift-hayade')">早出</button>
+                <button class="shift-option shift-hayade-630" onclick="selectShift('早出6時30分から', 'shift-hayade-630')">早出6:30から</button>
+                
+                <button class="shift-option shift-osode" onclick="selectShift('遅出', 'shift-osode')">遅出</button>
+                <button class="shift-option shift-osode-2230" onclick="selectShift('遅出22時30分まで', 'shift-osode-2230')">遅出22:30まで</button>
+
+                <button class="shift-option shift-yasumi" onclick="selectShift('休み', 'shift-yasumi')">休み</button>
+                
+                <button class="shift-option" style="background-color: #ccc; color: #333;" onclick="selectShift('', '')">リセット (空欄)</button>
+            </div>
+            
+            <button onclick="closeModal()" style="padding: 10px 20px; border-radius: 6px; background-color: #f0f0f0; border: 1px solid #ccc;">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        // === 1. 設定項目 ===
+        // ?? ここにデプロイしたGASのURLを貼り付けてください ??
+        const GAS_URL = '【ここにGASのウェブアプリURL（末尾 /exec）を貼り付け】';
+
+        // シフトを保持するオブジェクト { 'YYYY-MM-DD': 'shiftValue' }
+        let selectedShifts = {};
+        let currentDayCell = null;
+        let currentDate = new Date();
+
+        // === 2. カレンダー生成ロジック ===
+
+        function updateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth(); // 0-11
+            const monthName = `${year}年 ${month + 1}月`;
+            document.getElementById('current-month').textContent = monthName;
+
+            const calendarDiv = document.getElementById('calendar');
+            // 曜日行より下をクリア
+            Array.from(calendarDiv.children).slice(7).forEach(child => child.remove());
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+            const startDay = firstDayOfMonth.getDay(); // 0=日, 1=月, ...
+
+            // 前月の日付で空白を埋める
+            for (let i = 0; i < startDay; i++) {
+                calendarDiv.insertAdjacentHTML('beforeend', '<div class="day-cell" style="background-color: #f7f7f7;"></div>');
+            }
+
+            // 今月の日付を挿入
+            for (let day = 1; day <= lastDateOfMonth; day++) {
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                const shiftValue = selectedShifts[dateString] || '';
+                const shiftClass = getShiftClass(shiftValue);
+                const dayOfWeek = new Date(year, month, day).getDay(); // 0=日, 6=土
+
+                let dayColor = '#333';
+                if (dayOfWeek === 0) dayColor = '#F44336'; // 日曜: 赤
+                if (dayOfWeek === 6) dayColor = '#2196F3'; // 土曜: 青
+
+                const dayCellHTML = `
+                    <div class="day-cell" data-date="${dateString}" onclick="openModal(this, ${day})">
+                        <span class="date-number" style="color: ${dayColor};">${day}</span>
+                        <div class="shift-display ${shiftClass}">${shiftValue}</div>
+                    </div>
+                `;
+                calendarDiv.insertAdjacentHTML('beforeend', dayCellHTML);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            updateCalendar();
+        }
+
+        function getShiftClass(value) {
+            if (value.includes('早出')) return value.includes('6時30分') ? 'shift-hayade-630' : 'shift-hayade';
+            if (value.includes('遅出')) return value.includes('22時30分') ? 'shift-osode-2230' : 'shift-osode';
+            if (value.includes('休み')) return 'shift-yasumi';
+            return '';
+        }
+
+        // === 3. モーダルと選択ロジック ===
+
+        function openModal(cell, day) {
+            const dateString = cell.dataset.date;
+            const modalDateSpan = document.getElementById('modal-date');
+            
+            modalDateSpan.textContent = `${dateString.split('-')[1]}月${day}日`;
+            
+            currentDayCell = cell;
+            document.getElementById('shift-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('shift-modal').style.display = 'none';
+        }
+
+        function selectShift(value, className) {
+            if (!currentDayCell) return;
+            
+            const dateString = currentDayCell.dataset.date;
+            
+            // 内部データ更新
+            selectedShifts[dateString] = value;
+            
+            // セル表示の更新
+            const shiftDisplay = currentDayCell.querySelector('.shift-display');
+            shiftDisplay.textContent = value;
+            shiftDisplay.className = `shift-display ${className}`;
+
+            closeModal();
+        }
+
+        // === 4. GASへの送信ロジック ===
+
+        async function submitShifts() {
+            if (GAS_URL === '【ここにGASのウェブアプリURL（末尾 /exec）を貼り付け】') {
+                alert("エラー: GASのURLが設定されていません。");
+                return;
+            }
+            
+            const name = document.getElementById('staff-name').value;
+            const comment = document.getElementById('comment').value;
+
+            if (!name) {
+                alert("氏名を入力してください。");
+                return;
+            }
+
+            const shiftsArray = Object.entries(selectedShifts).map(([date, shift]) => {
+                const day = new Date(date).getDate();
+                // GAS側で処理しやすい形式: "1日:早出, 2日:休み, ..."
+                return `${day}日:${shift}`; 
+            }).filter(([_, shift]) => shift.trim() !== '日:');
+
+            if (shiftsArray.length === 0) {
+                alert("シフトが一つも選択されていません。");
+                return;
+            }
+            
+            // 送信月の決定 (カレンダーに表示されている月)
+            const submissionMonth = `${currentDate.getFullYear()}/${currentDate.getMonth() + 1}`;
+
+            const payload = {
+                name: name,
+                month: submissionMonth,
+                shifts: shiftsArray.join(', '),
+                comment: comment
+            };
+            
+            document.getElementById('submit-button').disabled = true;
+            document.getElementById('loading-message').style.display = 'block';
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'no-cors' // GASへの送信はno-corsが必要
+                });
+
+                // GASからのJSONレスポンスはno-corsモードでは読み取れないため、
+                // 成功したと「みなす」のが一般的な対応です。
+                alert("シフト希望の送信が完了しました！ご協力ありがとうございます。");
+                
+                // 送信後の状態リセット
+                selectedShifts = {};
+                document.getElementById('comment').value = '';
+                updateCalendar();
+
+            } catch (error) {
+                alert("送信中にエラーが発生しました。インターネット接続を確認し、再度お試しください。");
+                console.error("Submission error:", error);
+            } finally {
+                document.getElementById('submit-button').disabled = false;
+                document.getElementById('loading-message').style.display = 'none';
+            }
+        }
+
+        // ページロード時にカレンダーを初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCalendar();
+        });
+    </script>
+</body>
+</html>
