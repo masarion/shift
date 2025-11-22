@@ -265,8 +265,7 @@
         // 【C】各注意書き欄の内容を編集してください (文頭の「`」と「`」の間だけ編集)
         
         // 1つ目の注意事項 (カレンダーの上部: 黄色)
-        // 修正点: シングルクォーテーションをバッククォートに修正しました
-        const CAUTION_TEXT_TOP = `締め切りは毎月${DEADLINE_DAY}日です。21日以降は当月のシフトは編集できなくなりますのでご注意ください。`;
+        const CAUTION_TEXT_TOP = `締め切りは毎月${DEADLINE_DAY}日です。${DEADLINE_DAY + 1}日以降は当月のシフトは編集できなくなりますのでご注意ください。`;
         
         // 2つ目の注意事項 (送信ボタンの上: 青色)
         const CAUTION_TEXT_BOTTOM = `特別な希望や、出勤できない曜日、時間帯の変更があればこちらにご記入ください。必ず最新の内容を確認して送信してください。`;
@@ -350,8 +349,9 @@
             const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
             const startDay = firstDayOfMonth.getDay();
 
-            // 締め切り判定
-            const isDeadlinePassed = currentDate.getMonth() === month && day > DEADLINE_DAY;
+            // 修正された締め切り判定ロジック
+            // カレンダーの月に関わらず、アクセスした今日の日付が締め切り日を超えているかチェック
+            const isDeadlinePassed = day > DEADLINE_DAY; 
             
             // 締め切りが過ぎた場合、送信ボタンを無効化
             const submitButton = document.getElementById('submit-button');
@@ -361,7 +361,7 @@
                 // 注意事項を更新
                 document.getElementById('caution-top-content').innerHTML = `
                     <strong>【締め切りのお知らせ】</strong><br>
-                    当月${DEADLINE_DAY}日を過ぎたため、${month + 1}月分のシフト希望は締め切りました。
+                    当月${DEADLINE_DAY}日を過ぎたため、${currentDate.getMonth() + 2}月分のシフト希望は締め切りました。
                 `;
             } else {
                 submitButton.textContent = '希望シフトを送信';
@@ -386,7 +386,7 @@
                 if (dayOfWeek === 0) dayColor = '#F44336'; // 日曜: 赤
                 if (dayOfWeek === 6) dayColor = '#2196F3'; // 土曜: 青
 
-                const isLocked = isDeadlinePassed && month === currentDate.getMonth();
+                const isLocked = isDeadlinePassed; // 締め切り判定をそのまま利用
 
                 const dayCellHTML = `
                     <div class="day-cell ${isLocked ? 'locked' : ''}" data-date="${dateString}" onclick="openModal(this, ${day}, ${isLocked})">
@@ -450,68 +450,82 @@
 
         // === 4. GASへの送信ロジック ===
 
-        async function submitShifts() {
-            if (GAS_URL.includes('【ここにGASのウェブアプリURL')) {
-                alert("エラー: 管理者設定が必要です。HTML内のURLを設定してください。");
-                return;
-            }
+async function submitShifts() {
+    if (GAS_URL.includes('【ここにGASのウェブアプリURL')) {
+        alert("エラー: 管理者設定が必要です。HTML内のURLを設定してください。");
+        return;
+    }
+
+    // 修正後の締め切り判定ロジック
+    const currentDateCheck = new Date();
+    const deadlineDay = DEADLINE_DAY; // 20日
+    const currentMonth = currentDateCheck.getMonth() + 1; // 11月 (1-12の形式)
+
+    // ロジック: 今日の日付が、設定された締め切り日 (DEADLINE_DAY) を過ぎているか？
+    const isDeadlinePassed = currentDateCheck.getDate() > deadlineDay;
+
+    if (isDeadlinePassed) {
+        // エラーメッセージは、アクセスしている今月を基準に表示します
+        alert(`エラー: ${currentMonth}月分のシフト希望の締め切り（毎月${deadlineDay}日）が過ぎています。送信できません。`);
+        return; // 送信処理をここで中断
+    }
+    
+    const name = document.getElementById('staff-name').value.trim();
+    const comment = document.getElementById('comment').value;
+
+    if (!name) {
+        alert("氏名を入力してください。");
+        return;
+    }
+
+    const shiftsArray = Object.entries(selectedShifts).map(([date, shift]) => {
+        const day = new Date(date).getDate();
+        return `${day}日:${shift}`; 
+    }).filter(([_, shift]) => shift.trim() !== '日:');
+
+    if (shiftsArray.length === 0) {
+        if (!confirm("シフトが一つも選択されていませんが送信しますか？")) return;
+    }
+    
+    const submissionMonth = `${targetMonthDate.getFullYear()}/${targetMonthDate.getMonth() + 1}`;
+
+    const email = document.getElementById('staff-email').value.trim();
+
+    const payload = {
+        name: name,
+        email: email, 
+        month: submissionMonth, 
+        shifts: shiftsArray.join(', '),
+        comment: comment
+    };
             
-            const name = document.getElementById('staff-name').value.trim();
-            const comment = document.getElementById('comment').value;
+    document.getElementById('submit-button').disabled = true;
+    document.getElementById('loading-message').style.display = 'block';
 
-            if (!name) {
-                alert("氏名を入力してください。");
-                return;
-            }
+    try {
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json' },
+            mode: 'no-cors'
+        });
 
-            const shiftsArray = Object.entries(selectedShifts).map(([date, shift]) => {
-                const day = new Date(date).getDate();
-                return `${day}日:${shift}`; 
-            }).filter(([_, shift]) => shift.trim() !== '日:');
+        alert("シフト希望の送信が完了しました！");
+        
+        // 送信後の状態リセット
+        selectedShifts = {};
+        document.getElementById('comment').value = '';
+        document.getElementById('staff-name').value = '';
+        updateCalendar();
 
-            if (shiftsArray.length === 0) {
-                if (!confirm("シフトが一つも選択されていませんが送信しますか？")) return;
-            }
-            
-            const submissionMonth = `${targetMonthDate.getFullYear()}/${targetMonthDate.getMonth() + 1}`;
-
-            const email = document.getElementById('staff-email').value.trim(); // 追加
-
-const payload = {
-    name: name,
-    email: email, // 追加
-    month: submissionMonth, // ※HTML内にこの変数定義がある前提です
-    shifts: shiftsArray.join(', '),
-    comment: comment
-};
-            
-            document.getElementById('submit-button').disabled = true;
-            document.getElementById('loading-message').style.display = 'block';
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'application/json' },
-                    mode: 'no-cors'
-                });
-
-                alert("シフト希望の送信が完了しました！");
-                
-                // 送信後の状態リセット
-                selectedShifts = {};
-                document.getElementById('comment').value = '';
-                document.getElementById('staff-name').value = '';
-                updateCalendar();
-
-            } catch (error) {
-                alert("送信中にエラーが発生しました。インターネット接続を確認し、再度お試しください。");
-                console.error("Submission error:", error);
-            } finally {
-                document.getElementById('submit-button').disabled = false;
-                document.getElementById('loading-message').style.display = 'none';
-            }
-        }
+    } catch (error) {
+        alert("送信中にエラーが発生しました。インターネット接続を確認し、再度お試しください。");
+        console.error("Submission error:", error);
+    } finally {
+        document.getElementById('submit-button').disabled = false;
+        document.getElementById('loading-message').style.display = 'none';
+    }
+}
 
         // ページロード時にカレンダーを初期化
         document.addEventListener('DOMContentLoaded', () => {
