@@ -1,9 +1,11 @@
-// ------------------------------------------
-// script.js の該当部分を以下に差し替えてください
-// ------------------------------------------
+// ==========================================
+// script.js: シフト希望フォーム JavaScript
+// ==========================================
 
+// ------------------------------------------
+// 定数定義
+// ------------------------------------------
 const SHIFTS = {
-    // ... 定義は維持
     '早番': 'shift-早番',
     '早番6:30': 'shift-早番630',
     '中番': 'shift-中番',
@@ -25,19 +27,31 @@ let currentCell = null;
 // ------------------------------------------
 function generateNextMonthCalendar() {
     const today = new Date();
+    // 翌月の1日を取得
     const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     const year = nextMonthDate.getFullYear();
     const month = nextMonthDate.getMonth(); 
     const monthName = (month + 1);
+    // 翌月の日数を取得
     const lastDay = new Date(year, month + 1, 0).getDate();
 
-    // ?? 修正: タイトルと見出しから「(希望提出月)」を削除
+    // 1. タイトルと見出しを更新 (翌月を自動反映)
     const titleText = `${monthName}月のシフト希望`;
     document.getElementById('formTitle').textContent = titleText;
     document.getElementById('mainHeading').textContent = titleText;
-    
-    // ?? 修正: ヘッダーの表示テキストを変更
     document.getElementById('currentMonth').textContent = `${year}年${monthName}月`; 
+    
+    // 2. 指示テキストの追加
+    const calendarContainer = document.querySelector('.calendar-container');
+    let instructionElement = calendarContainer.querySelector('.calendar-instruction');
+    if (!instructionElement) {
+        instructionElement = document.createElement('p');
+        instructionElement.classList.add('calendar-instruction');
+        instructionElement.innerHTML = '日付をタップしてシフトを選択してください。（全ての日付の入力が**必須**です）';
+        // ヘッダー要素と曜日ラベルの間に挿入
+        const headerElement = document.getElementById('currentMonth');
+        headerElement.parentNode.insertBefore(instructionElement, headerElement.nextSibling);
+    }
 
 
     const calendarGrid = document.querySelector('.calendar-grid');
@@ -45,9 +59,10 @@ function generateNextMonthCalendar() {
     calendarGrid.innerHTML = '';
     dayLabels.forEach(label => calendarGrid.appendChild(label));
 
+    // 1日の曜日を取得 (0=日, 6=土)
     const firstDayOfWeek = nextMonthDate.getDay();
 
-    // 翌月1日の位置まで空セルを挿入 (ロジック維持)
+    // 翌月1日の位置まで空セルを挿入
     for (let i = 0; i < firstDayOfWeek; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.classList.add('date-cell');
@@ -71,6 +86,7 @@ function generateNextMonthCalendar() {
             <input type="hidden" name="shift_${dateStr.replace(/-/g, '_')}" id="input-${dateStr}" value="" required>
         `;
         
+        // 日曜と土曜のセルの色を調整
         if (dayOfWeek === 0) {
             dateCell.style.color = 'red'; 
         } else if (dayOfWeek === 6) {
@@ -104,29 +120,33 @@ function showShiftDialog(cell) {
     });
 
     modal.style.display = 'block';
-    document.body.classList.add('modal-open'); // ?? 追加: 画面ズレ防止クラスを追加
+    // 💡 画面ズレ防止クラスを追加
+    document.body.classList.add('modal-open'); 
 }
 
 // シフト選択処理
 function selectShift(event) {
-    // ... ロジックは維持 ...
     const selectedShift = event.target.getAttribute('data-shift');
     const date = currentCell.getAttribute('data-date');
     
     const shiftDisplay = document.getElementById(`shift-display-${date}`);
     shiftDisplay.textContent = selectedShift;
     
+    // 既存のシフトクラスを削除し、新しいクラスを適用（色分け）
     Object.values(SHIFTS).forEach(className => {
         shiftDisplay.classList.remove(className);
     });
     shiftDisplay.classList.remove('empty-shift');
     shiftDisplay.classList.add(SHIFTS[selectedShift]);
     
+    // 隠しフィールドの値を更新
     const hiddenInput = document.getElementById(`input-${date}`);
     hiddenInput.value = selectedShift;
     
+    // モーダルを閉じる
     modal.style.display = 'none';
-    document.body.classList.remove('modal-open'); // ?? 追加: 画面ズレ防止クラスを削除
+    // 💡 画面ズレ防止クラスを削除
+    document.body.classList.remove('modal-open'); 
     currentCell = null;
 }
 
@@ -136,27 +156,30 @@ function selectShift(event) {
 function setupShiftSelection() {
     document.querySelector('.calendar-grid').addEventListener('click', (e) => {
         let cell = e.target.closest('.date-cell');
+        // 空セルを無視
         if (cell && cell.getAttribute('data-date') !== "") {
             showShiftDialog(cell);
         }
     });
 
+    // モーダルを閉じる処理
     closeBtn.onclick = function() {
         modal.style.display = 'none';
-        document.body.classList.remove('modal-open'); // ?? 追加
+        document.body.classList.remove('modal-open'); 
         currentCell = null;
     }
 
+    // モーダル外クリックで閉じる
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = 'none';
-            document.body.classList.remove('modal-open'); // ?? 追加
+            document.body.classList.remove('modal-open'); 
             currentCell = null;
         }
     }
 }
 
-// フォーム送信時のチェック (維持)
+// フォーム送信時のチェック (必須項目チェック)
 document.getElementById('shiftForm').addEventListener('submit', function(e) {
     let allShiftsSelected = true;
     document.querySelectorAll('.calendar-container input[type="hidden"][required]').forEach(input => {
@@ -167,13 +190,17 @@ document.getElementById('shiftForm').addEventListener('submit', function(e) {
 
     if (!allShiftsSelected) {
         e.preventDefault();
-        alert("?? 全ての日付のシフト選択が必要です。カレンダーを確認してください。");
+        alert("⚠️ 全ての日付のシフト選択が必要です。カレンダーを確認してください。");
         return;
     }
 });
 
-// ページロード時に実行 (維持)
+// ページロード時に実行
 document.addEventListener('DOMContentLoaded', () => {
     generateNextMonthCalendar();
     setupShiftSelection();
 });
+    generateNextMonthCalendar();
+    setupShiftSelection();
+});
+
