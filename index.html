@@ -259,27 +259,29 @@
 
     <script>
         // =======================================================
-        // === 1. 管理者設定エリア（GASテンプレート変数から読み込み） ===
-        // =======================================================
-        
-        // 【A】GASのウェブアプリURLを貼り付けてください
-        const GAS_URL = '<?= https://script.google.com/macros/s/AKfycbymhOZIfPCAd49iMD8n-nNcOXlKODHcBRwAH-IRoJ0YLyqbshphqLMctQ9qOb4oPsWW/exec ?>'; 
-        
-        // 【B】設定データとシフトデータ（GAS側でスプレッドシートから取得し、JSON形式で埋め込まれる）
-        const CONFIG = JSON.parse('<?= configJson ?>'); 
-        const SHIFT_OPTIONS = JSON.parse('<?= shiftOptionsJson ?>');
+// === 1. 管理者設定エリア（ここだけ編集してください） ===
+// =======================================================
 
-        // 設定データから変数に展開
-        const DEADLINE_DAY = parseInt(CONFIG.DEADLINE_DAY, 10);
-        // DEADLINE_DAYの値をテキスト内のプレースホルダー（${DEADLINE_DAY}）に置換
-        const CAUTION_TEXT_TOP = CONFIG.CAUTION_TEXT_TOP.replace(/\${DEADLINE_DAY}/g, DEADLINE_DAY).replace(/\${DEADLINE_DAY \+ 1}/g, DEADLINE_DAY + 1);
-        const INPUT_INSTRUCTION_TEXT = CONFIG.INPUT_INSTRUCTION_TEXT;
-        const CAUTION_TEXT_BOTTOM = CONFIG.CAUTION_TEXT_BOTTOM.replace(/\${DEADLINE_DAY}/g, DEADLINE_DAY).replace(/\${DEADLINE_DAY \+ 1}/g, DEADLINE_DAY + 1);
-        const REMARK_TEXT_ADMIN = CONFIG.REMARK_TEXT_ADMIN;
+// 【A】GASのウェブアプリURLを貼り付けてください
+const GAS_URL = '<?= https://script.google.com/macros/s/AKfycbwUU6VganiSDZnyCVPUPdFruwwwNd4Urg_INYdjS63-Qn9bbZUxvqEAM_Oh672SjycA/exec ?>'; // GASからURLを受け取る
 
-        // =======================================================
-        // === 2. スクリプト本体（ここから下は編集しないでください） ===
-        // =======================================================
+// 【B】設定データとシフトデータ（GAS側でスプレッドシートから取得し、JSON形式で埋め込まれる）
+const CONFIG = JSON.parse('<?= configJson ?>'); 
+const SHIFT_OPTIONS = JSON.parse('<?= shiftOptionsJson ?>');
+
+// 設定データから変数に展開
+const DEADLINE_DAY = parseInt(CONFIG.DEADLINE_DAY, 10); 
+
+// 【C】各注意書き欄の内容を編集してください
+// ※テキストはGASコードで定義せず、スプレッドシートの「設定」シートから読み込むように変更しました。
+const CAUTION_TEXT_TOP = CONFIG.CAUTION_TEXT_TOP;
+const INPUT_INSTRUCTION_TEXT = CONFIG.INPUT_INSTRUCTION_TEXT;
+const CAUTION_TEXT_BOTTOM = CONFIG.CAUTION_TEXT_BOTTOM;
+const REMARK_TEXT_ADMIN = CONFIG.REMARK_TEXT_ADMIN;
+
+
+// =======================================================
+// === 2. スクリプト本体（ここから下は編集しないでください） ===
         
         let selectedShifts = {};
         let currentDayCell = null;
@@ -547,6 +549,3 @@ async function submitShifts() {
     </script>
 </body>
 </html>
-
-
-
