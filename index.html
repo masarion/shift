@@ -58,7 +58,7 @@
             border: 1px solid #b8daff;
         }
 
-        /* 備考欄の説明書き: 薄いグレー */
+        /* 備考欄の説明書き/入力ガイド: 薄いグレー */
         .admin-remark-info {
             background-color: #f0f0f0;
             color: #555;
@@ -116,13 +116,16 @@
             border-radius: 3px;
         }
 
-        /* === 4. シフトのカラーコード（変更なし） === */
+        /* === 4. シフトのカラーコード（濃淡付き） === */
         /* CSSクラス名は設定エリアで定義されたものをそのまま使用 */
-        .shift-hayade { background-color: #4CAF50; color: white; }
-        .shift-hayade-630 { background-color: #8BC34A; color: white; }
-        .shift-osode { background-color: #2196F3; color: white; }
-        .shift-osode-2230 { background-color: #03A9F4; color: white; }
-        .shift-yasumi { background-color: #F44336; color: white; }
+        .shift-hayade { background-color: #2E7D32; color: white; } /* 濃い緑 */
+        .shift-hayade-630 { background-color: #4CAF50; color: white; } /* 標準の緑 */
+        .shift-osode { background-color: #1565C0; color: white; } /* 濃い青 */
+        .shift-osode-2230 { background-color: #2196F3; color: white; } /* 標準の青 */
+        .shift-yasumi { background-color: #F44336; color: white; } /* 休み（赤） */
+        
+        /* 【追加準備】新しいシフト用のクラスを定義してください */
+        /* .shift-new { background-color: #FF9800; color: white; } */
 
         /* === 5. モーダルと送信ボタン（変更なし） === */
         .modal {
@@ -223,6 +226,11 @@
             </div>
 
         <div id="submission-area">
+            <div class="admin-note-box admin-remark-info" id="input-instruction-content">
+                </div>
+            
+            <input type="text" id="staff-code" placeholder="スタッフコードを入力（必須）" required>
+            
             <input type="text" id="staff-name" placeholder="氏名を入力（必須）" required>
             <input type="email" id="staff-email" placeholder="メールアドレス（控え受取用/任意）" style="width: calc(100% - 20px); padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em;">
             
@@ -260,18 +268,43 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwtkmgZ3EevyFPuxZpBYvvNWaDc_3PJrrm2lKYDf8NgB2wUuGlKUBg5KTqbYUPUzCH_/exec';
 
         // 【B】シフトの締め切り日を設定してください
-        const DEADLINE_DAY = 20; // 例: 20日締め切り
+        const DEADLINE_DAY = 32; // 例: 20日締め切り (!!!テスト中は32に変更してください!!! テスト後は20に戻してください)
 
         // 【C】各注意書き欄の内容を編集してください (文頭の「`」と「`」の間だけ編集)
         
         // 1つ目の注意事項 (カレンダーの上部: 黄色)
-        const CAUTION_TEXT_TOP = `締め切りは毎月${DEADLINE_DAY}日です。${DEADLINE_DAY + 1}日以降は当月のシフトは編集できなくなりますのでご注意ください。`;
+        const CAUTION_TEXT_TOP = `カレンダーの任意の日をタップするとシフトを選ぶことができます<br><br>人数や出勤日数の兼ね合いで、一部希望通りのシフトにならない場合があります。ご容赦ください。<br><br>
+
+原則、通しでの勤務は不可です。<br>
+
+また、1週間の勤務日数は「土曜日を起算日」として有給を含めて週5日までです。<br><br>
+締め切りは毎月${DEADLINE_DAY}日です。${DEADLINE_DAY + 1}日以降は翌月のシフトは編集できなくなりますのでご注意ください。`;
+        
+        // 【新規】入力欄の上部に表示されるガイド（スタッフコード、氏名、メールアドレスの注意書き）
+        const INPUT_INSTRUCTION_TEXT = `
+            <strong>【スタッフコード】必須</strong><br>
+            スタッフコードが不明な方はWEB勤怠ログイン画面右上の「スタッフ情報」から確認できます。どうしても不明な方は入力欄に「不明」と入力してください<br>
+            <br>
+            <strong>【氏名】必須</strong><br>
+            必ずフルネームで記入してください。苗字と名前の間はスペース不要です<br>
+            <br>
+            <strong>【メールアドレス】任意</strong><br>
+            シフト送信後に内容を確認したい方はメールアドレスを入力してください。送信後すぐに内容がメールで届きます<br>
+            ※メールが見当たらない場合は迷惑メールフォルダも確認してください<br>
+            ※それでもメールが見当たらない場合は社員へお問い合わせください
+        `;
         
         // 2つ目の注意事項 (送信ボタンの上: 青色)
-        const CAUTION_TEXT_BOTTOM = `特別な希望や、出勤できない曜日、時間帯の変更があればこちらにご記入ください。必ず最新の内容を確認して送信してください。`;
+        const CAUTION_TEXT_BOTTOM = `シフト希望の選択ミスや入力漏れが無いか確認をしてください。特に入力漏れ（〇日に何もチェックが入っていない）があると、シフト希望が送信されず希望するシフトに入れない場合があります。<br><br>
+        また、回答内容を確認したい方は必ずメールアドレスを記入の上、送信してください。回答内容に変更がある場合は当月20日までなら再度このページのカレンダーに入力して送信することが可能です。<br>※21日になると送信できなくなりますのでご注意ください`;
 
         // 備考欄の説明書き (自由入力欄の上: グレー)
-        const REMARK_TEXT_ADMIN = `こちらには、特別な希望（例: 研修のためこの日は早めに上がりたい）や、連絡事項をご記入ください。`;
+        const REMARK_TEXT_ADMIN = `こちらには特別な希望や連絡事項をご記入ください。<br>
+例）<br>
+・週3出勤でお願いします。<br>
+・連勤は4連勤まででお願いします。<br>
+・月合計〇日勤務でお願いします。<br>
+・早出多めでお願いします。等`;
 
         // 【D】シフトの項目を編集してください (ラベル、値、クラス名を編集)
         const SHIFT_OPTIONS = [
@@ -280,6 +313,8 @@
             { label: '遅番', value: '遅番', cssClass: 'shift-osode' },
             { label: '遅番22時30分まで', value: '遅番22時30分まで', cssClass: 'shift-osode-2230' },
             { label: '休み', value: '休み', cssClass: 'shift-yasumi' }
+            // === 【追加準備】新しいシフトをここに追加してください ===
+            // { label: '新しいシフト名', value: '新しいシフトの値', cssClass: 'shift-new' }
         ];
 
         // =======================================================
@@ -294,6 +329,8 @@
         function initCalendar() {
             // 管理者設定テキストをHTMLに挿入
             document.getElementById('caution-top-content').innerHTML = `<strong>【重要】</strong><br>${CAUTION_TEXT_TOP}`;
+            // 【新規】入力ガイドの内容をHTMLに挿入
+            document.getElementById('input-instruction-content').innerHTML = INPUT_INSTRUCTION_TEXT.trim();
             document.getElementById('caution-bottom-content').innerHTML = `<strong>【管理者からのお知らせ】</strong><br>${CAUTION_TEXT_BOTTOM}`;
             document.getElementById('remark-admin-content').innerHTML = `<strong>【備考欄記入時の注意】</strong><br>${REMARK_TEXT_ADMIN}`;
             
@@ -456,9 +493,9 @@ async function submitShifts() {
         return;
     }
 
-    // 修正後の締め切り判定ロジック
+    // 締め切り判定ロジック
     const currentDateCheck = new Date();
-    const deadlineDay = DEADLINE_DAY; // 20日
+    const deadlineDay = DEADLINE_DAY; // 20日 or 32(テスト用)
     const currentMonth = currentDateCheck.getMonth() + 1; // 11月 (1-12の形式)
 
     // ロジック: 今日の日付が、設定された締め切り日 (DEADLINE_DAY) を過ぎているか？
@@ -469,9 +506,18 @@ async function submitShifts() {
         alert(`エラー: ${currentMonth}月分のシフト希望の締め切り（毎月${deadlineDay}日）が過ぎています。送信できません。`);
         return; // 送信処理をここで中断
     }
+
+    // スタッフコードを取得
+    const staffCode = document.getElementById('staff-code').value.trim();
     
     const name = document.getElementById('staff-name').value.trim();
     const comment = document.getElementById('comment').value;
+
+    // スタッフコードの必須チェック
+    if (!staffCode) {
+        alert("スタッフコードを入力してください。");
+        return;
+    }
 
     if (!name) {
         alert("氏名を入力してください。");
@@ -492,6 +538,7 @@ async function submitShifts() {
     const email = document.getElementById('staff-email').value.trim();
 
     const payload = {
+        staffCode: staffCode, // スタッフコードをpayloadに追加
         name: name,
         email: email, 
         month: submissionMonth, 
@@ -514,8 +561,10 @@ async function submitShifts() {
         
         // 送信後の状態リセット
         selectedShifts = {};
+        document.getElementById('staff-code').value = ''; // スタッフコードをクリア
         document.getElementById('comment').value = '';
         document.getElementById('staff-name').value = '';
+        document.getElementById('staff-email').value = ''; // メールアドレスをクリア
         updateCalendar();
 
     } catch (error) {
