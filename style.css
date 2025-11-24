@@ -1,3 +1,7 @@
+/* ==========================================
+   style.css: シフト希望フォーム スタイルシート
+   ========================================== */
+
 /* ------------------------------------------
    基本スタイルと文字の大型化
    ------------------------------------------ */
@@ -9,6 +13,14 @@ body {
     color: #333;
     font-size: 1.1em;
 }
+
+/* 💡 モーダル表示時の画面ズレ修正 */
+body.modal-open {
+    overflow: hidden; /* スクロールを無効化 */
+    position: fixed; /* 画面位置を固定 */
+    width: 100%; /* 幅を確実に100%に固定 */
+}
+
 .container {
     max-width: 650px;
     margin: auto;
@@ -24,7 +36,9 @@ h1 {
     font-size: 2em;
 }
 
-/* フォーム要素 */
+/* ------------------------------------------
+   フォーム要素の大型化とレイアウト
+   ------------------------------------------ */
 .form-group {
     margin-bottom: 20px;
 }
@@ -106,15 +120,27 @@ h1 {
 }
 .calendar-header {
     font-size: 1.5em;
-    margin-bottom: 15px;
-    color: #007bff;
+    margin-bottom: 5px; 
+    color: #0056b3; 
     text-align: center;
     font-weight: bold;
+}
+.calendar-instruction {
+    /* 💡 カレンダー上部に移動した指示テキストのスタイル */
+    text-align: center;
+    font-size: 1em;
+    margin-top: 5px; 
+    margin-bottom: 15px;
+    color: #555;
+    padding: 5px 0;
+    border-bottom: 1px dashed #ddd;
 }
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 3px;
+    box-sizing: border-box; 
+    width: 100%; 
 }
 .day-label {
     background-color: #e0e0e0;
@@ -161,10 +187,18 @@ h1 {
     text-align: center;
     margin-bottom: 5px;
 }
-.calendar-instruction {
-    text-align: center;
-    font-size: 1em;
-    margin-top: 15px;
+/* 💡 未選択セルの表示を非表示にして縦幅を詰める */
+.empty-shift { 
+    background-color: transparent !important; 
+    color: transparent !important; 
+    font-size: 0.1em; 
+    padding: 0;
+    line-height: 0.1;
+    height: 0;
+    margin: 0;
+}
+.empty-shift:after {
+    content: "";
 }
 
 /* ------------------------------------------
@@ -234,3 +268,7 @@ h1 {
 .shift-遅番2230 { background-color: #4b0082; }
 .shift-休み { background-color: #808080; }
 .empty-shift { background-color: #f0f0f0; color: #aaa; }
+.shift-遅番2230 { background-color: #4b0082; }
+.shift-休み { background-color: #808080; }
+.empty-shift { background-color: #f0f0f0; color: #aaa; }
+
