@@ -3,410 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>◯月のシフト希望</title>
-    <style>
-        /* ------------------------------------------
-        基本スタイルとモバイル対応
-        ------------------------------------------ */
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 15px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        h1 {
-            color: #007bff;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-        /* フォーム要素の基本スタイル */
-        .form-group {
-            margin-bottom: 15px;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .form-group input[type="text"],
-        .form-group input[type="email"],
-        .form-group input[type="date"],
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1em;
-        }
-        .form-inline {
-            display: flex;
-            flex-wrap: wrap; /* スマホで折り返す */
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .form-inline > .form-group {
-            flex: 1 1 calc(50% - 5px); /* 2列配置（スマホでは50%） */
-            min-width: 120px; /* 最小幅 */
-            margin-bottom: 0;
-            border: none;
-            padding: 0;
-        }
-        /* メールアドレスを下に配置する際の調整 */
-        @media (max-width: 480px) {
-            .form-inline > .form-group {
-                flex: 1 1 100%; /* スマホでは1列 */
-            }
-        }
-
-        /* 送信ボタン */
-        .submit-btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        .submit-btn:hover {
-            background-color: #218838;
-        }
-
-        /* ------------------------------------------
-        カレンダーとシフト選択のスタイル（デザインは簡易版）
-        ------------------------------------------ */
-        .calendar-container {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #fafafa;
-        }
-        .calendar-header {
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #007bff;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr); /* 7列 */
-            gap: 2px;
-            font-size: 0.8em;
-            text-align: center;
-        }
-        .day-label {
-            background-color: #eee;
-            padding: 5px 0;
-            font-weight: bold;
-        }
-        .date-cell {
-            padding: 5px 0;
-            border: 1px solid #eee;
-            cursor: pointer;
-            min-height: 40px; /* タップしやすくする */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
-            position: relative;
-        }
-        .date-number {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 2px;
-        }
-        .shift-display {
-            font-size: 0.75em;
-            padding: 2px 4px;
-            border-radius: 3px;
-            color: white;
-            font-weight: bold;
-            width: 80%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* シフト種別の色分け（CSSで簡易的に定義） */
-        .shift-早番 { background-color: #ff6347; } /* Tomato */
-        .shift-早番630 { background-color: #ff8c00; } /* DarkOrange */
-        .shift-中番 { background-color: #4682b4; } /* SteelBlue */
-        .shift-遅番 { background-color: #008080; } /* Teal */
-        .shift-遅番2230 { background-color: #4b0082; } /* Indigo */
-        .shift-休み { background-color: #808080; } /* Gray */
-        .empty-shift { background-color: #f0f0f0; color: #aaa; }
-        
-        /* 必須項目のマーク */
-        .required::after {
-            content: " *必須";
-            color: red;
-            font-size: 0.8em;
-            margin-left: 5px;
-        }
-    </style>
+    <title>シフト希望提出</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>◯月のシフト希望</h1>
-    <form id="shiftForm">
-        
-        <div class="form-group">
-            <label for="description">連絡事項・説明文エリア</label>
-            <textarea id="description" rows="3" readonly style="background-color: #e9ecef; color: #6c757d;">
-ここにシフト提出に関する重要な説明や注意事項を記載します。
-提出期限や、シフト選択のルールなどを確認してください。
-            </textarea>
-        </div>
-        
-        <hr>
+    <h1 id="shift-title">Loading...</h1>
 
-        <div class="form-inline">
-            <div class="form-group">
-                <label for="birthdate" class="required">誕生日（0101の形式）</label>
-                <input type="text" id="birthdate" name="birthdate" pattern="\d{4}" maxlength="4" placeholder="例: 0101" required>
+    <div class="notice-area">
+        <span class="notice-label">店長からのメッセージ：</span>
+        <div id="admin-message">
+            毎月20日までに提出をお願いします。<br>
+            ※年末年始は早めに締め切ります。
+        </div>
+    </div>
+
+    <form id="shift-form">
+        <div class="row-inputs">
+            <div class="form-group col-name">
+                <label for="username">氏名 (フルネーム)<span class="badge-require">必須</span></label>
+                <input type="text" id="username" name="username" placeholder="山田 太郎" required>
             </div>
-            <div class="form-group">
-                <label for="fullname" class="required">氏名（フルネーム）</label>
-                <input type="text" id="fullname" name="fullname" placeholder="例: 山田 太郎" required>
+            <div class="form-group col-birth">
+                <label for="birthdate">誕生日 (4ケタ)<span class="badge-require">必須</span></label>
+                <input type="text" id="birthdate" name="birthdate" placeholder="0101" maxlength="4" pattern="\d{4}" inputmode="numeric" required>
             </div>
         </div>
         
         <div class="form-group">
-            <label for="email">メールアドレス（確認メール希望者向け：任意）</label>
-            <input type="email" id="email" name="email" placeholder="メールアドレスを入力してください">
+            <label for="email">メールアドレス<span class="badge-optional">任意</span></label>
+            <input type="email" id="email" name="email" placeholder="sample@example.com">
         </div>
 
-        <hr>
+        <hr class="divider">
 
-        <div class="calendar-container">
-            <div class="calendar-header" id="currentMonth">
-                2025年12月 (来月)
-            </div>
-            <div class="calendar-grid">
-                <div class="day-label" style="color: red;">日</div>
-                <div class="day-label">月</div>
-                <div class="day-label">火</div>
-                <div class="day-label">水</div>
-                <div class="day-label">木</div>
-                <div class="day-label">金</div>
-                <div class="day-label" style="color: blue;">土</div>
-
-                <div class="date-cell" data-date="2025-12-01" data-shift-value="" style="grid-column: 1;">
-                    <div class="date-number">1</div>
-                    <div class="shift-display empty-shift" id="shift-2025-12-01">未選択</div>
-                    <input type="hidden" name="shift_2025_12_01" value="" required>
-                </div>
-                <div class="date-cell" data-date="2025-12-02" data-shift-value="">
-                    <div class="date-number">2</div>
-                    <div class="shift-display empty-shift" id="shift-2025-12-02">未選択</div>
-                    <input type="hidden" name="shift_2025_12_02" value="" required>
-                </div>
-                <div class="date-cell" data-date="2025-12-03" data-shift-value="">
-                    <div class="date-number">3</div>
-                    <div class="shift-display empty-shift" id="shift-2025-12-03">未選択</div>
-                    <input type="hidden" name="shift_2025_12_03" value="" required>
-                </div>
-                <div class="date-cell" data-date="2025-12-31" data-shift-value="">
-                    <div class="date-number">31</div>
-                    <div class="shift-display empty-shift" id="shift-2025-12-31">未選択</div>
-                    <input type="hidden" name="shift_2025_12_31" value="" required>
-                </div>
-
-            </div>
-            <p style="text-align: center; font-size: 0.8em; margin-top: 10px;">
-                日付をタップしてシフトを選択してください。（全ての日付の入力が**必須**です）
+        <div class="calendar-section">
+            <h2 id="calendar-month-year" class="calendar-header">----年 --月</h2>
+            
+            <p class="calendar-instruction">
+                日付をタップして希望シフトを選択してください。
             </p>
+
+            <div class="calendar-grid-header">
+                <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+            </div>
+            
+            <div id="calendar-grid" class="calendar-grid"></div>
         </div>
 
-        <hr>
-
-        <div class="form-group">
-            <label for="comments">その他 連絡事項・備考欄（任意）</label>
-            <textarea id="comments" name="comments" rows="4" placeholder="例: この日は〇〇のため、早めに上がりたいなど、特記事項があればご記入ください。"></textarea>
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="button" onclick="alert('現在は見た目の確認のみです')" class="submit-btn">シフトを提出する</button>
         </div>
-
-        <button type="submit" class="submit-btn">シフト希望を送信</button>
-
     </form>
 </div>
 
-<script>
-    // ------------------------------------------
-    // JavaScript (カレンダー生成とシフト選択のロジック)
-    // ------------------------------------------
-    
-    // 定義済みのシフトタイプとそのクラス名
-    const SHIFTS = {
-        '早番': 'shift-早番',
-        '早番6:30': 'shift-早番630',
-        '中番': 'shift-中番',
-        '遅番': 'shift-遅番',
-        '遅番22:30': 'shift-遅番2230',
-        '休み': 'shift-休み'
-    };
-    const SHIFT_NAMES = Object.keys(SHIFTS);
-    
-    /**
-     * **簡易的な翌月カレンダーの生成ロジック**
-     * 実際にはサーバーサイド処理や、より複雑なJSライブラリを使用することが多いです。
-     * ここでは、**翌月の1日?月末までの日付と未選択の隠しフィールド**を生成します。
-     */
-    function generateNextMonthCalendar() {
-        const today = new Date();
-        // 翌月を取得 (月のインデックスは0から始まるため+1、Dateは自動で繰り上げ/繰り下げを行う)
-        const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-        const year = nextMonthDate.getFullYear();
-        const month = nextMonthDate.getMonth(); // 0-11
-        const monthName = (month + 1);
-        
-        // 翌月の日数を取得
-        const lastDay = new Date(year, month + 1, 0).getDate();
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modal-date-display">--日のシフトを選択</h3>
+        <div class="shift-options">
+            <button type="button" class="shift-btn type-hayaban" onclick="selectShift('早番')">早番</button>
+            <button type="button" class="shift-btn type-hayaban-630" onclick="selectShift('早番6:30')">早番 6:30</button>
+            <button type="button" class="shift-btn type-nakaban" onclick="selectShift('中番')">中番</button>
+            <button type="button" class="shift-btn type-osoban" onclick="selectShift('遅番')">遅番</button>
+            <button type="button" class="shift-btn type-osoban-2230" onclick="selectShift('遅番22:30')">遅番 22:30</button>
+            <button type="button" class="shift-btn type-yasumi" onclick="selectShift('休み')">休み</button>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeModal()">キャンセル</button>
+    </div>
+</div>
 
-        // ヘッダーを更新
-        document.getElementById('currentMonth').textContent = `${year}年${monthName}月 (希望月)`;
-
-        const calendarGrid = document.querySelector('.calendar-grid');
-        // 曜日の行を除いて一旦クリア (簡易雛形のため、事前にHTMLで用意したものを上書き)
-        const dayLabels = calendarGrid.querySelectorAll('.day-label');
-        calendarGrid.innerHTML = '';
-        dayLabels.forEach(label => calendarGrid.appendChild(label));
-
-        // 1日の曜日を取得 (0=日, 1=月, ..., 6=土)
-        const firstDayOfWeek = nextMonthDate.getDay();
-
-        // 翌月1日の位置まで空セルを挿入
-        for (let i = 0; i < firstDayOfWeek; i++) {
-            const emptyCell = document.createElement('div');
-            // スタイル調整のために空のdate-cellクラスを付与
-            emptyCell.classList.add('date-cell');
-            emptyCell.style.border = 'none';
-            emptyCell.style.backgroundColor = '#f4f4f9';
-            calendarGrid.appendChild(emptyCell);
-        }
-
-        // 翌月の日付セルを生成
-        for (let i = 1; i <= lastDay; i++) {
-            const dateStr = `${year}-${String(monthName).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const dateCell = document.createElement('div');
-            const dayOfWeek = new Date(year, month, i).getDay(); // 0=日, 6=土
-
-            dateCell.classList.add('date-cell');
-            dateCell.setAttribute('data-date', dateStr);
-            dateCell.setAttribute('data-shift-value', '');
-            
-            // 土曜・日曜の色付け
-            if (dayOfWeek === 0) {
-                dateCell.style.color = 'red'; // 日曜日
-            } else if (dayOfWeek === 6) {
-                dateCell.style.color = 'blue'; // 土曜日
-            }
-
-            dateCell.innerHTML = `
-                <div class="date-number">${i}</div>
-                <div class="shift-display empty-shift" id="shift-${dateStr}">未選択</div>
-                <input type="hidden" name="shift_${dateStr.replace(/-/g, '_')}" id="input-${dateStr}" value="" required>
-            `;
-            calendarGrid.appendChild(dateCell);
-        }
-    }
-
-    // シフト選択のイベントリスナー設定
-    function setupShiftSelection() {
-        // カレンダーの日付セル全体にイベントを設定
-        document.querySelectorAll('.date-cell').forEach(cell => {
-            // 空セルは除外
-            if (!cell.hasAttribute('data-date')) return;
-            
-            cell.addEventListener('click', (e) => {
-                // クリックされたセルの日付を取得
-                const date = cell.getAttribute('data-date');
-                // 現在のシフト値を取得
-                let currentShiftValue = cell.getAttribute('data-shift-value');
-                
-                // 現在の値から次のシフトを見つける (ローテーション)
-                let currentIndex = SHIFT_NAMES.indexOf(currentShiftValue);
-                let nextIndex = (currentIndex + 1) % SHIFT_NAMES.length;
-                let nextShiftName = SHIFT_NAMES[nextIndex];
-                
-                // DOMを更新
-                const shiftDisplay = document.getElementById(`shift-${date}`);
-                const hiddenInput = document.getElementById(`input-${date}`);
-
-                // シフト表示を更新
-                shiftDisplay.textContent = nextShiftName;
-                
-                // シフト表示のクラスを更新（色分け）
-                // 既存のシフトクラスを削除
-                Object.values(SHIFTS).forEach(className => {
-                    shiftDisplay.classList.remove(className);
-                });
-                shiftDisplay.classList.remove('empty-shift');
-                
-                // 新しいシフトクラスを追加
-                shiftDisplay.classList.add(SHIFTS[nextShiftName]);
-                
-                // data属性と隠しフィールドを更新
-                cell.setAttribute('data-shift-value', nextShiftName);
-                hiddenInput.value = nextShiftName;
-
-                // 入力が完了したことを視覚的にフィードバックしたい場合はここに追加...
-            });
-        });
-    }
-
-    // フォームの送信時チェック (簡易版)
-    document.getElementById('shiftForm').addEventListener('submit', function(e) {
-        // 全ての隠しフィールドが入力されているかチェック (HTMLのrequired属性でもチェックされるが、念のため)
-        let allShiftsSelected = true;
-        document.querySelectorAll('.calendar-container input[type="hidden"][required]').forEach(input => {
-            if (input.value === "") {
-                allShiftsSelected = false;
-            }
-        });
-
-        if (!allShiftsSelected) {
-            e.preventDefault(); // 送信を中止
-            alert("全ての日付のシフト選択が必要です。カレンダーを確認してください。");
-            return;
-        }
-
-        // ここでデータの送信処理（XMLHttpRequest, fetch, またはフォームアクション）
-        // 実際の動作では、e.preventDefault() してAJAXでデータを送信します。
-        // e.preventDefault();
-        // alert('フォームデータを送信します... (実際にはサーバーに送られます)');
-    });
-
-    // ページロード時に実行
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. カレンダーを生成
-        generateNextMonthCalendar();
-        // 2. シフト選択のイベントを設定
-        setupShiftSelection();
-    });
-
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
