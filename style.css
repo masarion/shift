@@ -58,6 +58,14 @@ input {
     width: 100%; padding: 10px; font-size: 1rem;
     border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;
 }
+/* ★修正箇所：textareaのスタイル追加 */
+textarea {
+    width: 100%; padding: 10px; font-size: 0.9rem;
+    border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;
+    resize: vertical; /* 縦方向のみリサイズ可能 */
+}
+/* ★修正箇所 ここまで */
+
 .help-text { font-size: 0.8rem; color: #666; margin-top: 5px; margin-bottom: 0; }
 
 .row-inputs { display: flex; gap: 20px; flex-wrap: wrap; }
@@ -102,7 +110,7 @@ input {
 .day-cell {
     border: 1px solid #eee;
     border-radius: 4px;
-    min-height: 80px; /* 通常時は80px */
+    min-height: 80px;
     padding: 5px;
     cursor: pointer;
     display: flex;
@@ -148,7 +156,7 @@ input {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* --- 共通モーダル設定 --- */
+/* --- 共通モーダル設定 (省略) --- */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -163,12 +171,11 @@ input {
     padding: 20px;
     border-radius: 8px;
     width: 90%;
-    max-width: 350px; /* 基本は350px */
+    max-width: 350px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* シフト選択モーダル用 */
 .shift-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -197,8 +204,8 @@ input {
 
 /* --- 確認画面モーダル用スタイル --- */
 .confirm-content {
-    max-width: 550px; /* カレンダーが出るので少し幅広に許可 */
-    max-height: 90vh; /* 縦長時はスクロール */
+    max-width: 550px;
+    max-height: 90vh;
     overflow-y: auto;
     text-align: left;
 }
@@ -218,14 +225,31 @@ input {
 }
 .confirm-info-row { margin-bottom: 5px; }
 
-/* 確認用カレンダーの微調整 */
+/* ★修正箇所：連絡事項表示エリアのスタイル */
+.confirm-notes-info {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    white-space: pre-wrap; /* 改行を反映 */
+    font-size: 0.9rem;
+    background: #fff;
+}
+.confirm-notes-info strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 5px;
+}
+/* ★修正箇所 ここまで */
+
 .confirm-grid-style .day-cell {
-    /* 確認画面では少しコンパクトに表示して、スクロール量を減らす */
     min-height: 60px; 
-    cursor: default; /* クリックできないことを示す */
+    cursor: default;
 }
 .confirm-grid-style .day-cell:hover {
-    background-color: #fff; /* ホバー効果を消す */
+    background-color: #fff;
 }
 
 .confirm-notice-box {
