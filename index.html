@@ -13,10 +13,7 @@
 
     <div class="notice-area">
         <span class="notice-label">店長からのメッセージ：</span>
-        <div id="admin-message">
-            毎月20日までに提出をお願いします。<br>
-            ※年末年始は早めに締め切ります。
-        </div>
+        <div id="admin-message">Loading...</div>
     </div>
 
     <form id="shift-form">
@@ -42,9 +39,7 @@
         <div class="calendar-section">
             <h2 id="calendar-month-year" class="calendar-header">----年 --月</h2>
             
-            <p class="calendar-instruction">
-                日付をタップして希望シフトを選択してください。
-            </p>
+            <p class="calendar-instruction"></p>
 
             <div class="calendar-grid-header">
                 <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
@@ -55,13 +50,16 @@
         
         <div class="form-group notes-area">
             <label for="notes">連絡事項・特記事項<span class="badge-optional">任意</span></label>
-            <textarea id="notes" name="notes" rows="4" placeholder="【管理者からのメッセージ】\n急な連休希望や試験期間など、特記事項があればご記入ください。\n\n【例文】\n12/10?12/12は資格試験のため休み希望です。それ以外の日程は調整可能です。"></textarea>
+            <textarea id="notes" name="notes" rows="4"></textarea>
         </div>
+        
         <div class="submission-notice-area">
             <p>※入力漏れがないか確認してください。<br>※一度提出した後の修正は店長へ直接連絡が必要です。</p>
         </div>
 
-        <div style="text-align: center; margin-top: 20px;">
+        <div class="user-action-area">
+            <div id="submit-confirm-message" class="admin-message" style="margin-bottom: 10px; font-size: 0.9em;">Loading...</div>
+            
             <button type="button" onclick="showConfirmation()" class="submit-btn">入力内容を確認する</button>
         </div>
     </form>
@@ -70,15 +68,12 @@
 <div id="modal-overlay" class="modal-overlay">
     <div class="modal-content">
         <h3 id="modal-date-display">--日のシフトを選択</h3>
-        <div class="shift-options">
-            <button type="button" class="shift-btn type-hayaban" onclick="selectShift('早番')">早番</button>
-            <button type="button" class="shift-btn type-hayaban-630" onclick="selectShift('早番6:30')">早番 6:30</button>
-            <button type="button" class="shift-btn type-nakaban" onclick="selectShift('中番')">中番</button>
-            <button type="button" class="shift-btn type-osoban" onclick="selectShift('遅番')">遅番</button>
-            <button type="button" class="shift-btn type-osoban-2230" onclick="selectShift('遅番22:30')">遅番 22:30</button>
-            <button type="button" class="shift-btn type-yasumi" onclick="selectShift('休み')">休み</button>
+        <div class="shift-options">Loading...</div>
+        
+        <div class="modal-action-buttons">
+            <button type="button" class="action-btn btn-primary" onclick="closeShiftModal()">決定</button>
+            <button type="button" class="action-btn btn-secondary" onclick="closeShiftModal()">キャンセル</button>
         </div>
-        <button type="button" class="modal-close-btn" onclick="closeShiftModal()">キャンセル</button>
     </div>
 </div>
 
@@ -89,19 +84,18 @@
         <div id="confirm-user-info" class="confirm-user-info"></div>
         
         <div id="confirm-notes-info" class="confirm-notes-info"></div>
+
         <div class="calendar-grid-header" style="margin-top: 15px; margin-bottom:5px;">
             <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
         </div>
 
         <div id="confirm-calendar-grid" class="calendar-grid confirm-grid-style"></div>
 
-        <div class="confirm-notice-box">
-            <p>この内容で送信します。よろしいですか？</p>
-        </div>
-
         <div class="confirm-actions">
-            <button type="button" class="action-btn btn-secondary" onclick="closeConfirmModal()">戻って修正</button>
+            <div id="send-final-message" class="admin-message" style="margin-bottom: 10px; font-size: 0.9em; color: #d32f2f;">Loading...</div>
+
             <button type="button" class="action-btn btn-primary" onclick="submitData()">送信する</button>
+            <button type="button" class="action-btn btn-secondary" onclick="closeConfirmModal()">戻って修正</button>
         </div>
     </div>
 </div>
