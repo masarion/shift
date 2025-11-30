@@ -52,7 +52,11 @@
             
             <div id="calendar-grid" class="calendar-grid"></div>
         </div>
-
+        
+        <div class="form-group notes-area">
+            <label for="notes">連絡事項・特記事項<span class="badge-optional">任意</span></label>
+            <textarea id="notes" name="notes" rows="4" placeholder="【管理者からのメッセージ】\n急な連休希望や試験期間など、特記事項があればご記入ください。\n\n【例文】\n12/10?12/12は資格試験のため休み希望です。それ以外の日程は調整可能です。"></textarea>
+        </div>
         <div class="submission-notice-area">
             <p>※入力漏れがないか確認してください。<br>※一度提出した後の修正は店長へ直接連絡が必要です。</p>
         </div>
@@ -83,7 +87,8 @@
         <h3>提出内容の確認</h3>
         
         <div id="confirm-user-info" class="confirm-user-info"></div>
-
+        
+        <div id="confirm-notes-info" class="confirm-notes-info"></div>
         <div class="calendar-grid-header" style="margin-top: 15px; margin-bottom:5px;">
             <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
         </div>
