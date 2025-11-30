@@ -7,12 +7,12 @@
     --border-color: #ccc;
     
     /* シフトの色定義 */
-    --color-hayaban: #e3f2fd;      /* 薄い青 */
-    --color-hayaban-630: #bbdefb;  /* 青 */
-    --color-nakaban: #e8f5e9;      /* 緑 */
-    --color-osoban: #fff3e0;       /* オレンジ */
-    --color-osoban-2230: #ffe0b2;  /* 濃いオレンジ */
-    --color-yasumi: #ffebee;       /* 赤（休み） */
+    --color-hayaban: #e3f2fd;
+    --color-hayaban-630: #bbdefb;
+    --color-nakaban: #e8f5e9;
+    --color-osoban: #fff3e0;
+    --color-osoban-2230: #ffe0b2;
+    --color-yasumi: #ffebee;
 }
 
 body {
@@ -58,6 +58,8 @@ input {
     width: 100%; padding: 10px; font-size: 1rem;
     border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;
 }
+.help-text { font-size: 0.8rem; color: #666; margin-top: 5px; margin-bottom: 0; }
+
 .row-inputs { display: flex; gap: 20px; flex-wrap: wrap; }
 .col-name { flex: 2; min-width: 200px; }
 .col-birth { flex: 1; min-width: 120px; }
@@ -73,15 +75,19 @@ input {
 }
 .calendar-instruction {
     text-align: center;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 15px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e53935;
+    margin-bottom: 20px;
+    background: #fff0f0;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px dashed #ef9a9a;
 }
 
-/* 7列のグリッド */
 .calendar-grid-header, .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7等分 */
+    grid-template-columns: repeat(7, 1fr);
     gap: 5px;
 }
 .calendar-grid-header div {
@@ -90,16 +96,13 @@ input {
     font-size: 0.8rem;
     color: #666;
 }
-/* 日曜日は赤く */
 .calendar-grid-header div:first-child { color: #e53935; }
-/* 土曜日は青く */
 .calendar-grid-header div:last-child { color: #1e88e5; }
 
-/* 日付セル */
 .day-cell {
     border: 1px solid #eee;
     border-radius: 4px;
-    min-height: 60px; /* スマホで押しやすい高さ */
+    min-height: 80px; /* 通常時は80px */
     padding: 5px;
     cursor: pointer;
     display: flex;
@@ -108,12 +111,17 @@ input {
     justify-content: flex-start;
     background: #fff;
     transition: background 0.2s;
+    position: relative;
 }
 .day-cell:hover { background-color: #fafafa; }
-.day-number { font-weight: bold; font-size: 1rem; margin-bottom: 2px; }
-.shift-label { font-size: 0.7rem; text-align: center; line-height: 1.2; word-break: break-all;}
 
-/* 選択されたシフトの色スタイル */
+.day-number { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+.shift-label { 
+    font-size: 0.8rem; text-align: center; line-height: 1.2; 
+    word-break: break-all; width: 100%; font-weight: 500;
+}
+
+/* シフトの色 */
 .day-cell[data-shift="早番"] { background-color: var(--color-hayaban); border-color: #90caf9; }
 .day-cell[data-shift="早番6:30"] { background-color: var(--color-hayaban-630); border-color: #64b5f6; }
 .day-cell[data-shift="中番"] { background-color: var(--color-nakaban); border-color: #a5d6a7; }
@@ -121,9 +129,28 @@ input {
 .day-cell[data-shift="遅番22:30"] { background-color: var(--color-osoban-2230); border-color: #ffb74d; }
 .day-cell[data-shift="休み"] { background-color: var(--color-yasumi); border-color: #ef9a9a; color: #c62828; }
 
-/* --- モーダル（ポップアップ） --- */
+/* --- 送信ボタン周りの注意書き --- */
+.submission-notice-area {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 0.85rem;
+    color: #e53935;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.submit-btn {
+    background-color: var(--primary-color); color: white; border: none;
+    padding: 15px 40px; font-size: 1.1rem; border-radius: 30px;
+    cursor: pointer; width: 100%; max-width: 350px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* --- 共通モーダル設定 --- */
 .modal-overlay {
-    display: none; /* 最初は非表示 */
+    display: none;
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.5);
@@ -136,13 +163,15 @@ input {
     padding: 20px;
     border-radius: 8px;
     width: 90%;
-    max-width: 350px;
+    max-width: 350px; /* 基本は350px */
     text-align: center;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
+
+/* シフト選択モーダル用 */
 .shift-options {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 2列でボタンを表示 */
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin: 20px 0;
 }
@@ -154,7 +183,6 @@ input {
     cursor: pointer;
     font-size: 0.9rem;
 }
-/* モーダル内のボタン色 */
 .type-hayaban { background: var(--color-hayaban); }
 .type-hayaban-630 { background: var(--color-hayaban-630); }
 .type-nakaban { background: var(--color-nakaban); }
@@ -166,9 +194,63 @@ input {
     background: #6c757d; color: #fff; border: none;
     padding: 8px 20px; border-radius: 4px; cursor: pointer;
 }
-.submit-btn {
-    background-color: var(--primary-color); color: white; border: none;
-    padding: 15px 40px; font-size: 1.1rem; border-radius: 30px;
-    cursor: pointer; width: 100%; max-width: 300px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+/* --- 確認画面モーダル用スタイル --- */
+.confirm-content {
+    max-width: 550px; /* カレンダーが出るので少し幅広に許可 */
+    max-height: 90vh; /* 縦長時はスクロール */
+    overflow-y: auto;
+    text-align: left;
 }
+.confirm-content h3 {
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.confirm-user-info {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    font-size: 0.95rem;
+}
+.confirm-info-row { margin-bottom: 5px; }
+
+/* 確認用カレンダーの微調整 */
+.confirm-grid-style .day-cell {
+    /* 確認画面では少しコンパクトに表示して、スクロール量を減らす */
+    min-height: 60px; 
+    cursor: default; /* クリックできないことを示す */
+}
+.confirm-grid-style .day-cell:hover {
+    background-color: #fff; /* ホバー効果を消す */
+}
+
+.confirm-notice-box {
+    background: #fff3cd;
+    color: #856404;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.action-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.btn-secondary { background: #6c757d; color: #fff; }
+.btn-primary { background: var(--primary-color); color: #fff; }
