@@ -1,32 +1,79 @@
 /* --- 設定データ --- */
-// ★ここにGASのウェブアプリURLを貼り付けてください
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwbDIeOK_2s6U6iU3ePL13kQ-ajhbfUf4E7kVUMj1h4g-pd2hswhW43j_mHkEP0va5u/exec"; 
+// ★【重要】ここにGASのウェブアプリURLを貼り付けてください
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx9FferOfEUcAyBxIwXyXp4C_oHNvLpBl9UboOFm-_ZqSuZk4T5h63vyH0DsRreu3W4/exec"; 
 
 let currentSelectedDate = null;
+// 複数選択対応: { day: ["シフト名1", "シフト名2", ...] }
 let shiftData = {}; 
 let targetYear = 0;
 let targetMonth = 0;
 
+// GASから取得した設定情報を保持
+let config = {}; 
+
 // DOM読み込み完了後に実行
 document.addEventListener('DOMContentLoaded', function() {
-    initCalendar();
-    checkSubmissionStatus(); 
+    // 最初に設定を読み込む
+    fetchConfig().then(() => {
+        initCalendar();
+        checkSubmissionStatus(); 
+    }).catch(error => {
+        console.error("設定の読み込みに失敗しました:", error);
+        // エラー時は初期化を停止し、アラートを表示
+        alert("設定ファイルの読み込みに失敗しました。管理者にご連絡ください。");
+    });
 });
 
+// GASから設定情報を取得する
+async function fetchConfig() {
+    // GASのURLに ?action=getConfig を付けてGETリクエストを送信
+    const response = await fetch(GAS_URL + "?action=getConfig");
+    if (!response.ok) throw new Error("GASへの接続エラー");
+    
+    const data = await response.json();
+    if (data.result === 'error') throw new Error(data.error);
+
+    config = data;
+}
+
+// 動的な設定値を使用してカレンダーを初期化
 function initCalendar() {
     const today = new Date();
+    // 次月の情報を取得
     const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     
     targetYear = nextMonthDate.getFullYear();
     targetMonth = nextMonthDate.getMonth() + 1;
 
-    document.getElementById('shift-title').textContent = `${targetMonth}月のシフト希望`;
+    // 設定シートの値を使用
+    document.getElementById('shift-title').textContent = config.TITLE || `${targetMonth}月のシフト希望`;
     document.getElementById('calendar-month-year').textContent = `${targetYear}年 ${targetMonth}月`;
+    
+    // 管理者からのメッセージを反映
+    document.getElementById('admin-message').innerHTML = config.MESSAGE_ADMIN || "メッセージが設定されていません。";
+    document.querySelector('.calendar-instruction').textContent = config.MESSAGE_CALENDAR || "日付をタップしてください。";
+    document.getElementById('notes').placeholder = (config.MESSAGE_NOTES_EXAMPLE ? `【管理者からのメッセージ】\n${config.MESSAGE_NOTES_EXAMPLE}` : "");
+    
+    // 確認ボタン上のメッセージを反映
+    document.getElementById('submit-confirm-message').textContent = config.MESSAGE_SUBMIT_CONFIRM || "確認メッセージが設定されていません。";
+
+    // 最終送信ボタン上のメッセージを反映
+    document.getElementById('send-final-message').textContent = config.MESSAGE_SEND_FINAL || "最終メッセージが設定されていません。";
+
 
     generateCalendarGrid(targetYear, targetMonth);
+    generateShiftModalButtons();
 }
 
+// 管理者のテスト用バイパス機能
 function checkSubmissionStatus() {
+    // URLに ?test=true が含まれている場合はチェックをスキップ
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('test') === 'true') {
+        console.log("管理者テストモード: 送信済みチェックをバイパスします。");
+        return;
+    }
+
     const savedMonth = localStorage.getItem('lastSubmissionMonth');
     const currentTarget = `${targetYear}-${targetMonth}`;
 
@@ -48,6 +95,27 @@ function disableForm() {
     document.querySelector('.submit-btn').style.background = "#999";
 }
 
+// 動的なシフトボタンを生成
+function generateShiftModalButtons() {
+    const options = document.querySelector('.shift-options');
+    options.innerHTML = '';
+    
+    if (!config.shifts) return;
+
+    config.shifts.forEach(shift => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        // CSSクラスを設定シートから読み込む
+        btn.className = `shift-btn ${shift.class}`; 
+        btn.textContent = shift.name;
+        // 複数選択に対応するため、トグル機能に設定
+        btn.onclick = () => toggleShiftSelection(shift.name); 
+        
+        options.appendChild(btn);
+    });
+}
+
+
 function generateCalendarGrid(year, month) {
     const gridElement = document.getElementById('calendar-grid');
     gridElement.innerHTML = "";
@@ -58,6 +126,9 @@ function generateCalendarGrid(year, month) {
     for (let i = 0; i < firstDayIndex; i++) {
         gridElement.appendChild(document.createElement('div'));
     }
+
+    // 祝日リストをSetに変換 (YYYYMMDD形式)
+    const holidaySet = new Set(config.holidays || []);
 
     for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement('div');
@@ -76,11 +147,17 @@ function generateCalendarGrid(year, month) {
         cell.appendChild(dayNum);
         cell.appendChild(shiftLabel);
 
-        shiftData[day] = null;
+        shiftData[day] = []; // 初期化：配列にする
 
         cell.addEventListener('click', function() {
             openShiftModal(day);
         });
+        
+        // 祝日色付け
+        const dayStr = `${year}${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+        if (holidaySet.has(dayStr)) {
+            cell.classList.add('holiday');
+        }
 
         gridElement.appendChild(cell);
     }
@@ -91,7 +168,19 @@ function openShiftModal(day) {
     currentSelectedDate = day;
     const modal = document.getElementById('modal-overlay');
     const title = document.getElementById('modal-date-display');
-    title.textContent = `${day}日のシフトを選択`;
+    title.textContent = `${day}日のシフトを選択 (複数可)`;
+    
+    // 現在選択済みのシフトボタンにハイライトを付ける
+    const selectedShifts = shiftData[day] || [];
+    document.querySelectorAll('.shift-btn').forEach(btn => {
+        const shiftName = btn.textContent.trim();
+        if (selectedShifts.includes(shiftName)) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+
     modal.style.display = 'flex';
 }
 
@@ -100,17 +189,99 @@ function closeShiftModal() {
     currentSelectedDate = null;
 }
 
-function selectShift(shiftName) {
+// 複数選択に対応したトグル機能 (重複防止と排他制御を実装)
+function toggleShiftSelection(shiftName) {
     if (!currentSelectedDate) return;
 
-    const cell = document.getElementById(`day-${currentSelectedDate}`);
-    const label = document.getElementById(`shift-label-${currentSelectedDate}`);
-    label.textContent = shiftName;
-    cell.setAttribute('data-shift', shiftName);
+    // 現在のシフト情報を取得
+    let selectedShifts = shiftData[currentSelectedDate];
+    const index = selectedShifts.indexOf(shiftName);
     
-    shiftData[currentSelectedDate] = shiftName;
+    // 現在タップされたボタン要素を取得
+    const btn = Array.from(document.querySelectorAll('.shift-btn')).find(b => b.textContent.trim() === shiftName);
+    
+    // --- 1. 排他制御ロジック (「休み」が絡む場合) ---
+    const IS_YASUMI_SELECTED = selectedShifts.includes("休み");
 
-    closeShiftModal();
+    if (shiftName === "休み") {
+        if (IS_YASUMI_SELECTED) {
+            // 休みを再タップした場合 (解除/クリア): 配列を空にする
+            selectedShifts = []; 
+            // ボタンのハイライトを解除
+            btn.classList.remove('selected');
+            
+        } else {
+            // 休みを新規選択: 既存のシフトをすべてクリアし、「休み」のみ追加
+            if (selectedShifts.length > 0) {
+                alert("「休み」を選択する場合、他のシフトはすべて自動的にクリアされます。");
+            }
+            selectedShifts = ["休み"];
+            // 他のボタンのハイライトをすべて解除
+            document.querySelectorAll('.shift-btn.selected').forEach(b => {
+                 if (b !== btn) b.classList.remove('selected');
+            });
+            btn.classList.add('selected');
+        }
+    } else {
+        // --- 休み以外のシフトを選択する場合 ---
+        if (IS_YASUMI_SELECTED) {
+            // 既に「休み」が選択されている場合は無効
+            alert("「休み」が選択されているため、他のシフトは選択できません。先に「休み」を解除してください。");
+            return;
+        }
+
+        // --- 2. 重複防止ロジック ---
+        if (index > -1) {
+            // すでに選択されていれば削除 (重複防止)
+            selectedShifts.splice(index, 1);
+            btn.classList.remove('selected');
+        } else {
+            // 選択されていなければ追加
+            selectedShifts.push(shiftName);
+            btn.classList.add('selected');
+        }
+    }
+
+    // データ保存: selectedShiftsの内容を上書き
+    shiftData[currentSelectedDate] = selectedShifts;
+
+    // 画面のセル表示を更新
+    updateCellDisplay(currentSelectedDate);
+    
+    // 休みが選択された場合、他のボタンのハイライトをリセット
+    if (shiftName === "休み" && !IS_YASUMI_SELECTED) {
+        document.querySelectorAll('.shift-btn').forEach(b => {
+            const name = b.textContent.trim();
+            if (name !== "休み") {
+                b.classList.remove('selected');
+            }
+        });
+    }
+}
+
+// セル表示更新
+function updateCellDisplay(day) {
+    const cell = document.getElementById(`day-${day}`);
+    const label = document.getElementById(`shift-label-${day}`);
+    const selectedShifts = shiftData[day];
+
+    // CSSクラスをリセット
+    cell.removeAttribute('data-shift');
+    config.shifts.forEach(s => cell.classList.remove(s.class));
+    
+    if (selectedShifts && selectedShifts.length > 0) {
+        // 複数シフトを "/" で連結して表示
+        label.textContent = selectedShifts.join(' / ');
+        
+        // セルに選択されたシフトのクラスをすべて付与
+        const firstShift = config.shifts.find(s => s.name === selectedShifts[0]);
+        if(firstShift) {
+            cell.setAttribute('data-shift', firstShift.name);
+            cell.classList.add(firstShift.class);
+        }
+    } else {
+        label.textContent = "-";
+    }
 }
 
 /* --- 確認画面と送信処理 --- */
@@ -124,12 +295,12 @@ function showConfirmation() {
         return;
     }
     
-    // ★★★ 修正・追加箇所：全日シフト選択チェック ★★★
+    // 全日シフト選択チェック
     const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
     let allDaysSelected = true;
     for (let day = 1; day <= daysInMonth; day++) {
-        // shiftData[day]がnullの場合、未選択と判断
-        if (shiftData[day] === null) {
+        // 選択シフトの配列が空[]の場合、未選択と判断
+        if (shiftData[day].length === 0) {
             allDaysSelected = false;
             break; 
         }
@@ -137,11 +308,10 @@ function showConfirmation() {
     
     if (!allDaysSelected) {
         alert("すべての日付のシフト（早番、休みなど）を選択してください。未選択の日があります。");
-        return; // 未選択があればここで処理を中断
+        return; 
     }
-    // ★★★ 修正・追加箇所 ここまで ★★★
 
-    // ユーザー情報の表示
+    // ユーザー情報の表示 (変更なし)
     const email = document.getElementById('email').value.trim() || "(未入力)";
     const userInfoHtml = `
         <div class="confirm-info-row"><strong>氏名:</strong> ${name}</div>
@@ -150,7 +320,7 @@ function showConfirmation() {
     `;
     document.getElementById('confirm-user-info').innerHTML = userInfoHtml;
     
-    // 連絡事項の表示
+    // 連絡事項の表示 (変更なし)
     const notesInfoHtml = `
         <strong>連絡事項・特記事項</strong>
         ${notes || "(入力なし)"}
@@ -162,6 +332,7 @@ function showConfirmation() {
     confirmGrid.innerHTML = "";
 
     const firstDayIndex = new Date(targetYear, targetMonth - 1, 1).getDay();
+    const holidaySet = new Set(config.holidays || []);
 
     for (let i = 0; i < firstDayIndex; i++) {
         confirmGrid.appendChild(document.createElement('div'));
@@ -178,10 +349,24 @@ function showConfirmation() {
         const shiftLabel = document.createElement('div');
         shiftLabel.className = 'shift-label';
         
-        const selectedShift = shiftData[day];
-        // 全日選択チェックで通過しているため、selectedShiftは必ず値を持つ
-        shiftLabel.textContent = selectedShift;
-        cell.setAttribute('data-shift', selectedShift);
+        const selectedShifts = shiftData[day];
+        const shiftText = selectedShifts.join(' / ') || "-";
+        
+        shiftLabel.textContent = shiftText;
+        
+        // CSSクラスを適用
+        const firstShiftName = selectedShifts[0];
+        const firstShift = config.shifts.find(s => s.name === firstShiftName);
+        if(firstShift) {
+            cell.setAttribute('data-shift', firstShift.name);
+            cell.classList.add(firstShift.class);
+        }
+        
+        // 祝日色付け
+        const dayStr = `${targetYear}${String(targetMonth).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+        if (holidaySet.has(dayStr)) {
+            cell.classList.add('holiday');
+        }
 
         cell.appendChild(dayNum);
         cell.appendChild(shiftLabel);
@@ -195,18 +380,13 @@ function closeConfirmModal() {
     document.getElementById('confirm-modal').style.display = 'none';
 }
 
+// 複数選択形式のデータをGASに送信
 function submitData() {
     const submitBtn = document.querySelector('.action-btn.btn-primary');
     submitBtn.textContent = "送信中...";
     submitBtn.disabled = true;
 
-    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
-    const shiftArray = [];
-    for (let day = 1; day <= daysInMonth; day++) {
-        // 全日チェックを通過しているので、ここでは必ず値が入る (null以外)
-        shiftArray.push(shiftData[day] || "-"); 
-    }
-
+    // shiftDataはすでに {1: ["早番", "遅番"], 2: ["休み"], ...} の形式
     const postData = {
         name: document.getElementById('username').value.trim(),
         birth: document.getElementById('birthdate').value.trim(),
@@ -215,7 +395,7 @@ function submitData() {
         
         year: targetYear,
         month: targetMonth,
-        shifts: shiftArray 
+        shifts: shiftData // 複数シフトのデータ構造をそのままGASに渡す
     };
 
     fetch(GAS_URL, {
@@ -230,8 +410,12 @@ function submitData() {
         if (data.result === 'success') {
             alert("送信が完了しました！");
             
-            const currentTarget = `${targetYear}-${targetMonth}`;
-            localStorage.setItem('lastSubmissionMonth', currentTarget);
+            // テストモードでなければ提出履歴を保存
+            const urlParams = new URLSearchParams(location.search);
+            if (urlParams.get('test') !== 'true') {
+                const currentTarget = `${targetYear}-${targetMonth}`;
+                localStorage.setItem('lastSubmissionMonth', currentTarget);
+            }
             
             closeConfirmModal();
             disableForm();
