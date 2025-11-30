@@ -1,6 +1,6 @@
 /* --- 設定データ --- */
 // ★ここにGASのウェブアプリURLを貼り付けてください
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwnFVySl0AguuEuLiEwsm0h9VwqMAwGD8yC9HwdesLiW_Vr-1Do-jEv4mxbn4jHl1Qd/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwbDIeOK_2s6U6iU3ePL13kQ-ajhbfUf4E7kVUMj1h4g-pd2hswhW43j_mHkEP0va5u/exec"; 
 
 let currentSelectedDate = null;
 let shiftData = {}; 
