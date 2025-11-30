@@ -34,6 +34,7 @@
         <div class="form-group">
             <label for="email">メールアドレス<span class="badge-optional">任意</span></label>
             <input type="email" id="email" name="email" placeholder="sample@example.com">
+            <p class="help-text">※シフト入力内容確認が必要な方はメールで内容を送信します。</p>
         </div>
 
         <hr class="divider">
@@ -52,8 +53,12 @@
             <div id="calendar-grid" class="calendar-grid"></div>
         </div>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <button type="button" onclick="alert('現在は見た目の確認のみです')" class="submit-btn">シフトを提出する</button>
+        <div class="submission-notice-area">
+            <p>※入力漏れがないか確認してください。<br>※一度提出した後の修正は店長へ直接連絡が必要です。</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="button" onclick="showConfirmation()" class="submit-btn">入力内容を確認する</button>
         </div>
     </form>
 </div>
@@ -69,7 +74,30 @@
             <button type="button" class="shift-btn type-osoban-2230" onclick="selectShift('遅番22:30')">遅番 22:30</button>
             <button type="button" class="shift-btn type-yasumi" onclick="selectShift('休み')">休み</button>
         </div>
-        <button type="button" class="modal-close-btn" onclick="closeModal()">キャンセル</button>
+        <button type="button" class="modal-close-btn" onclick="closeShiftModal()">キャンセル</button>
+    </div>
+</div>
+
+<div id="confirm-modal" class="modal-overlay">
+    <div class="modal-content confirm-content">
+        <h3>提出内容の確認</h3>
+        
+        <div id="confirm-user-info" class="confirm-user-info"></div>
+
+        <div class="calendar-grid-header" style="margin-top: 15px; margin-bottom:5px;">
+            <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        </div>
+
+        <div id="confirm-calendar-grid" class="calendar-grid confirm-grid-style"></div>
+
+        <div class="confirm-notice-box">
+            <p>この内容で送信します。よろしいですか？</p>
+        </div>
+
+        <div class="confirm-actions">
+            <button type="button" class="action-btn btn-secondary" onclick="closeConfirmModal()">戻って修正</button>
+            <button type="button" class="action-btn btn-primary" onclick="submitData()">送信する</button>
+        </div>
     </div>
 </div>
 
