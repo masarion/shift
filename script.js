@@ -1,6 +1,6 @@
 /* --- 設定データ --- */
 // ★【重要】ここにGASのウェブアプリURLを貼り付けてください
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwEkH5SteBCfyG_Yn_ZRFdGNpQNYaldQ1aCqIXwfhOVHGgOaxAKp22BGw7kjXvLQFlr/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/ここにあなたのURLを貼り付け/exec"; 
 
 let currentSelectedDate = null;
 // 複数選択対応: { day: ["シフト名1", "シフト名2", ...] }
@@ -290,6 +290,7 @@ function showConfirmation() {
     const birth = document.getElementById('birthdate').value.trim();
     const notes = document.getElementById('notes').value.trim();
 
+    // 必須入力チェック
     if (!name || !birth) {
         alert("氏名と誕生日は必須です。");
         return;
@@ -299,7 +300,6 @@ function showConfirmation() {
     const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
     let allDaysSelected = true;
     for (let day = 1; day <= daysInMonth; day++) {
-        // 選択シフトの配列が空[]の場合、未選択と判断
         if (shiftData[day].length === 0) {
             allDaysSelected = false;
             break; 
@@ -329,6 +329,11 @@ function showConfirmation() {
 
     // 確認用シフトリストの生成 (カレンダーからリスト形式に変更)
     const confirmListContainer = document.getElementById('confirm-shift-list-container');
+    
+    // ★微修正箇所★：以前のリスト要素があれば削除 (二重表示防止)
+    const oldList = confirmListContainer.querySelector('.confirm-shift-list');
+    if(oldList) oldList.remove();
+    
     const listHtml = document.createElement('div');
     listHtml.className = 'confirm-shift-list';
     
@@ -363,11 +368,10 @@ function showConfirmation() {
         listHtml.appendChild(contentDiv);
     }
     
-    // 古い内容をクリアし、新しいリストを挿入
-    const oldList = confirmListContainer.querySelector('.confirm-shift-list');
-    if(oldList) oldList.remove();
+    // 新しいリストを挿入
     confirmListContainer.appendChild(listHtml);
 
+    // モーダルを表示
     document.getElementById('confirm-modal').style.display = 'flex';
 }
 
