@@ -1,6 +1,6 @@
 /* --- 設定データ --- */
 // ★【重要】ここにGASのウェブアプリURLを貼り付けてください
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx9FferOfEUcAyBxIwXyXp4C_oHNvLpBl9UboOFm-_ZqSuZk4T5h63vyH0DsRreu3W4/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwEkH5SteBCfyG_Yn_ZRFdGNpQNYaldQ1aCqIXwfhOVHGgOaxAKp22BGw7kjXvLQFlr/exec"; 
 
 let currentSelectedDate = null;
 // 複数選択対応: { day: ["シフト名1", "シフト名2", ...] }
@@ -327,52 +327,47 @@ function showConfirmation() {
     `;
     document.getElementById('confirm-notes-info').innerHTML = notesInfoHtml;
 
-    // 確認用カレンダーの生成
-    const confirmGrid = document.getElementById('confirm-calendar-grid');
-    confirmGrid.innerHTML = "";
-
-    const firstDayIndex = new Date(targetYear, targetMonth - 1, 1).getDay();
+    // 確認用シフトリストの生成 (カレンダーからリスト形式に変更)
+    const confirmListContainer = document.getElementById('confirm-shift-list-container');
+    const listHtml = document.createElement('div');
+    listHtml.className = 'confirm-shift-list';
+    
+    // 祝日リストをSetに変換
     const holidaySet = new Set(config.holidays || []);
 
-    for (let i = 0; i < firstDayIndex; i++) {
-        confirmGrid.appendChild(document.createElement('div'));
-    }
-
     for (let day = 1; day <= daysInMonth; day++) {
-        const cell = document.createElement('div');
-        cell.className = 'day-cell';
-        
-        const dayNum = document.createElement('div');
-        dayNum.className = 'day-number';
-        dayNum.textContent = day;
-
-        const shiftLabel = document.createElement('div');
-        shiftLabel.className = 'shift-label';
+        const date = new Date(targetYear, targetMonth - 1, day);
+        const dayOfWeek = date.getDay(); // 0=日, 6=土
+        const dayName = ["日", "月", "火", "水", "木", "金", "土"][dayOfWeek];
         
         const selectedShifts = shiftData[day];
         const shiftText = selectedShifts.join(' / ') || "-";
-        
-        shiftLabel.textContent = shiftText;
-        
-        // CSSクラスを適用
-        const firstShiftName = selectedShifts[0];
-        const firstShift = config.shifts.find(s => s.name === firstShiftName);
-        if(firstShift) {
-            cell.setAttribute('data-shift', firstShift.name);
-            cell.classList.add(firstShift.class);
-        }
-        
-        // 祝日色付け
-        const dayStr = `${targetYear}${String(targetMonth).padStart(2, '0')}${String(day).padStart(2, '0')}`;
-        if (holidaySet.has(dayStr)) {
-            cell.classList.add('holiday');
+
+        let dayClass = '';
+        if (dayOfWeek === 0 || holidaySet.has(`${targetYear}${String(targetMonth).padStart(2, '0')}${String(day).padStart(2, '0')}`)) {
+            dayClass = 'sunday holiday';
+        } else if (dayOfWeek === 6) {
+            dayClass = 'saturday';
         }
 
-        cell.appendChild(dayNum);
-        cell.appendChild(shiftLabel);
-        confirmGrid.appendChild(cell);
+        // 日付セル
+        const dayDiv = document.createElement('div');
+        dayDiv.className = `shift-list-day ${dayClass}`;
+        dayDiv.textContent = `${day}日 (${dayName})`;
+        listHtml.appendChild(dayDiv);
+
+        // シフト内容セル
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'shift-list-content';
+        contentDiv.textContent = shiftText;
+        listHtml.appendChild(contentDiv);
     }
     
+    // 古い内容をクリアし、新しいリストを挿入
+    const oldList = confirmListContainer.querySelector('.confirm-shift-list');
+    if(oldList) oldList.remove();
+    confirmListContainer.appendChild(listHtml);
+
     document.getElementById('confirm-modal').style.display = 'flex';
 }
 
