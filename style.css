@@ -6,13 +6,13 @@
     --text-color: #333;
     --border-color: #ccc;
     
-    /* シフトの色定義 */
-    --color-hayaban: #e3f2fd;
-    --color-hayaban-630: #bbdefb;
-    --color-nakaban: #e8f5e9;
-    --color-osoban: #fff3e0;
-    --color-osoban-2230: #ffe0b2;
-    --color-yasumi: #ffebee;
+    /* シフトの色定義 (設定シートのCSSクラス名と一致させる) */
+    --color-type-hayaban: #e3f2fd;
+    --color-type-hayaban-630: #bbdefb;
+    --color-type-nakaban: #e8f5e9;
+    --color-type-osoban: #fff3e0;
+    --color-type-osoban-2230: #ffe0b2;
+    --color-type-yasumi: #ffebee;
 }
 
 body {
@@ -58,13 +58,11 @@ input {
     width: 100%; padding: 10px; font-size: 1rem;
     border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;
 }
-/* ★修正箇所：textareaのスタイル追加 */
 textarea {
     width: 100%; padding: 10px; font-size: 0.9rem;
     border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;
-    resize: vertical; /* 縦方向のみリサイズ可能 */
+    resize: vertical; 
 }
-/* ★修正箇所 ここまで */
 
 .help-text { font-size: 0.8rem; color: #666; margin-top: 5px; margin-bottom: 0; }
 
@@ -104,8 +102,8 @@ textarea {
     font-size: 0.8rem;
     color: #666;
 }
-.calendar-grid-header div:first-child { color: #e53935; }
-.calendar-grid-header div:last-child { color: #1e88e5; }
+.calendar-grid-header div:first-child { color: #e53935; } /* 日曜日のヘッダー */
+.calendar-grid-header div:last-child { color: #1e88e5; } /* 土曜日のヘッダー */
 
 .day-cell {
     border: 1px solid #eee;
@@ -123,21 +121,30 @@ textarea {
 }
 .day-cell:hover { background-color: #fafafa; }
 
+/* 日曜日と祝日の色付け */
+.calendar-grid div:nth-child(7n+1).day-cell .day-number, /* 日曜日 */
+.day-cell.holiday .day-number { /* 祝日 */
+    color: #e53935;
+}
+.calendar-grid div:nth-child(7n).day-cell .day-number { /* 土曜日 */
+    color: #1e88e5;
+}
+
 .day-number { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
 .shift-label { 
     font-size: 0.8rem; text-align: center; line-height: 1.2; 
     word-break: break-all; width: 100%; font-weight: 500;
 }
 
-/* シフトの色 */
-.day-cell[data-shift="早番"] { background-color: var(--color-hayaban); border-color: #90caf9; }
-.day-cell[data-shift="早番6:30"] { background-color: var(--color-hayaban-630); border-color: #64b5f6; }
-.day-cell[data-shift="中番"] { background-color: var(--color-nakaban); border-color: #a5d6a7; }
-.day-cell[data-shift="遅番"] { background-color: var(--color-osoban); border-color: #ffcc80; }
-.day-cell[data-shift="遅番22:30"] { background-color: var(--color-osoban-2230); border-color: #ffb74d; }
-.day-cell[data-shift="休み"] { background-color: var(--color-yasumi); border-color: #ef9a9a; color: #c62828; }
+/* シフトの色 (設定シートのクラス名と合わせる) */
+.day-cell.type-hayaban { background-color: var(--color-type-hayaban); border-color: #90caf9; }
+.day-cell.type-hayaban-630 { background-color: var(--color-type-hayaban-630); border-color: #64b5f6; }
+.day-cell.type-nakaban { background-color: var(--color-type-nakaban); border-color: #a5d6a7; }
+.day-cell.type-osoban { background-color: var(--color-type-osoban); border-color: #ffcc80; }
+.day-cell.type-osoban-2230 { background-color: var(--color-type-osoban-2230); border-color: #ffb74d; }
+.day-cell.type-yasumi { background-color: var(--color-type-yasumi); border-color: #ef9a9a; color: #c62828; }
 
-/* --- 送信ボタン周りの注意書き --- */
+/* --- 送信ボタン周り --- */
 .submission-notice-area {
     text-align: center;
     margin-top: 30px;
@@ -147,6 +154,11 @@ textarea {
     padding: 10px;
     border: 1px solid #eee;
     border-radius: 5px;
+}
+
+.user-action-area {
+    text-align: center; 
+    margin-top: 20px;
 }
 
 .submit-btn {
@@ -189,13 +201,15 @@ textarea {
     font-weight: bold;
     cursor: pointer;
     font-size: 0.9rem;
+    /* シフトごとの背景色を適用 */
 }
-.type-hayaban { background: var(--color-hayaban); }
-.type-hayaban-630 { background: var(--color-hayaban-630); }
-.type-nakaban { background: var(--color-nakaban); }
-.type-osoban { background: var(--color-osoban); }
-.type-osoban-2230 { background: var(--color-osoban-2230); }
-.type-yasumi { background: var(--color-yasumi); color: #c62828; }
+
+/* 複数選択時のボタンハイライト */
+.shift-btn.selected {
+    border: 3px solid var(--primary-color); /* メインカラーで太く枠を囲む */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    background-color: #e0f7fa !important; /* 背景色を強制的に明るくする */
+}
 
 .modal-close-btn {
     background: #6c757d; color: #fff; border: none;
@@ -225,7 +239,7 @@ textarea {
 }
 .confirm-info-row { margin-bottom: 5px; }
 
-/* ★修正箇所：連絡事項表示エリアのスタイル */
+/* 連絡事項表示エリアのスタイル */
 .confirm-notes-info {
     margin-bottom: 15px;
     border: 1px solid #ddd;
@@ -242,7 +256,6 @@ textarea {
     border-bottom: 1px dashed #eee;
     padding-bottom: 5px;
 }
-/* ★修正箇所 ここまで */
 
 .confirm-grid-style .day-cell {
     min-height: 60px; 
@@ -252,24 +265,20 @@ textarea {
     background-color: #fff;
 }
 
-.confirm-notice-box {
-    background: #fff3cd;
-    color: #856404;
-    padding: 10px;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 0.9rem;
-    font-weight: bold;
-    margin: 20px 0;
-}
-
 .confirm-actions {
     display: flex;
     gap: 10px;
     justify-content: center;
+    flex-direction: column; /* メッセージを挟むため縦並びを基本に */
 }
+
+.confirm-actions button {
+    width: 100%;
+    max-width: 350px;
+    margin: 5px auto;
+}
+
 .action-btn {
-    flex: 1;
     padding: 12px;
     border: none;
     border-radius: 5px;
@@ -278,3 +287,116 @@ textarea {
 }
 .btn-secondary { background: #6c757d; color: #fff; }
 .btn-primary { background: var(--primary-color); color: #fff; }
+
+.admin-message {
+    text-align: center;
+}
+
+/* --- モーダル内のボタン配置の修正 --- */
+
+/* 新しいボタンコンテナのスタイル */
+.modal-action-buttons {
+    display: flex;
+    gap: 10px; /* ボタン間の間隔 */
+    margin-top: 15px;
+    justify-content: center;
+}
+
+/* モーダル内のボタン共通スタイルを適用 */
+.modal-action-buttons .action-btn {
+    padding: 10px;
+    border-radius: 4px;
+    flex: 1; /* 均等な幅に広げる */
+}
+
+/* 決定ボタンのスタイル */
+.modal-action-buttons .btn-primary {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* キャンセルボタンのスタイル */
+.modal-action-buttons .btn-secondary {
+    background: #6c757d;
+    color: #fff;
+}
+
+/* （注）以前の .modal-close-btn は使用しなくなりますが、他の場所に影響がないか確認し、不要であれば削除しても構いません。 */
+
+/* --- シフトボタンのレスポンシブ対応 --- */
+
+/* デフォルトは2列 (スマホ縦画面向け) */
+.shift-options {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* 画面幅480px以上で3列に */
+@media (min-width: 480px) {
+    .shift-options {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+/* 画面幅600px以上で4列に (タブレット/PC向け) */
+@media (min-width: 600px) {
+    .shift-options {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+}
+
+/* --- シフトボタンのグループ別色分け --- */
+
+/* 左側2列のボタンに薄い背景色を適用 */
+.shift-options .shift-btn:nth-child(4n - 3), 
+.shift-options .shift-btn:nth-child(4n - 2) {
+    background-color: #f0f8ff; /* 薄い青 */
+}
+
+/* 右側2列のボタンに別の薄い背景色を適用 */
+.shift-options .shift-btn:nth-child(4n - 1), 
+.shift-options .shift-btn:nth-child(4n) {
+    background-color: #f0fff0; /* 薄い緑 */
+}
+
+/* 補足: 2列表示の際は、左/右の色分けになります */
+
+/* style.css の末尾に追加 */
+
+/* --- 確認画面のシフトリストスタイル --- */
+#confirm-shift-list-container h4 {
+    text-align: center;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 5px;
+    margin: 15px 0 10px 0;
+    font-size: 1rem;
+    color: #444;
+}
+
+.confirm-shift-list {
+    display: grid;
+    /* 2列 (日付とシフト) */
+    grid-template-columns: 1fr 2fr; 
+    gap: 5px 10px;
+    max-height: 250px; /* 高さ制限 */
+    overflow-y: auto; /* スクロール可能にする */
+    padding-right: 5px;
+    border: 1px solid #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.shift-list-day {
+    font-weight: bold;
+    color: #333;
+    padding: 3px 0;
+}
+
+.shift-list-content {
+    color: #007bff;
+    padding: 3px 0;
+}
+
+/* 祝日、土日の色付け（必要であれば） */
+.shift-list-day.sunday { color: #dc3545; }
+.shift-list-day.saturday { color: #007bff; }
+.shift-list-day.holiday { color: #dc3545; }
