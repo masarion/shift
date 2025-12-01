@@ -1,6 +1,6 @@
 /* --- 設定データ --- */
 // ★【重要】ここにGASのウェブアプリURLを貼り付けてください
-const GAS_URL = "https://script.google.com/macros/s/ここにあなたのURLを貼り付け/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyA51hewOfdSnkxPxy3hQQdpr8_CUJ4YnIkhfbCpJzPydEeDZkdNuBtBpwQmZVamKk3/exec"; 
 
 let currentSelectedDate = null;
 // 複数選択対応: { day: ["シフト名1", "シフト名2", ...] }
@@ -438,3 +438,4 @@ window.onclick = function(event) {
     if (event.target == shiftModal) closeShiftModal();
     if (event.target == confirmModal) closeConfirmModal();
 }
+
